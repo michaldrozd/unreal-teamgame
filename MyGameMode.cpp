@@ -44,15 +44,15 @@ void AMyGameMode::PlayerKilled(AController* VictimController, AController* Kille
 	{
 		VictimName = VictimPlayerState->GetPlayerName();
 		VictimPlayerState->AddDeath(); // Zvys pocet smrti v stave hraca na serveri
-        // UE_LOG(LogTemp, Log, TEXT("%s death count: %d"), *VictimName, VictimPlayerState->Deaths);
+		// UE_LOG(LogTemp, Log, TEXT("%s death count: %d"), *VictimName, VictimPlayerState->Deaths);
 	}
-    else
-    {
-        // UE_LOG(LogTemp, Warning, TEXT("PlayerKilled: Could not get VictimPlayerState."));
-    }
+	else
+	{
+		// UE_LOG(LogTemp, Warning, TEXT("PlayerKilled: Could not get VictimPlayerState."));
+	}
 
 	FString KillerName = "Environment"; // Predvolene meno, ak nie je znamy zabijak
-    bool bSuicide = (KillerController == VictimController || KillerController == nullptr);
+	bool bSuicide = (KillerController == VictimController || KillerController == nullptr);
 
 	if (KillerPlayerState)
 	{
@@ -61,10 +61,10 @@ void AMyGameMode::PlayerKilled(AController* VictimController, AController* Kille
 		if (!bSuicide)
 		{
 			KillerPlayerState->AddKill(); // Zvys pocet zabiti v stave hraca na serveri
-            // UE_LOG(LogTemp, Log, TEXT("%s kill count: %d"), *KillerName, KillerPlayerState->Kills);
+			// UE_LOG(LogTemp, Log, TEXT("%s kill count: %d"), *KillerName, KillerPlayerState->Kills);
 		}
 	}
-    // else if (KillerController) { UE_LOG(LogTemp, Warning, TEXT("PlayerKilled: Could not get KillerPlayerState, but KillerController exists.")); }
+	// else if (KillerController) { UE_LOG(LogTemp, Warning, TEXT("PlayerKilled: Could not get KillerPlayerState, but KillerController exists.")); }
 
 
 	if (MyGameState)
@@ -80,30 +80,30 @@ void AMyGameMode::PlayerKilled(AController* VictimController, AController* Kille
 		}
 		MyGameState->AddKillFeedMessage(KillMessage); // Pridaj spravu do stavu hry, aby sa poslala vsetkym
 	}
-    else
-    {
-        // UE_LOG(LogTemp, Warning, TEXT("PlayerKilled: Could not get MyGameState."));
-    }
+	else
+	{
+		// UE_LOG(LogTemp, Warning, TEXT("PlayerKilled: Could not get MyGameState."));
+	}
 
 	// Spusti casovac ozivenia pre obet
 	if (VictimController)
 	{
-        FTimerHandle& TimerHandle = RespawnTimerHandles.FindOrAdd(VictimController); // Ziskaj existujuci casovac alebo pridaj novy
-        if (GetWorldTimerManager().IsTimerActive(TimerHandle))
-        {
-            // UE_LOG(LogTemp, Warning, TEXT("Respawn timer already active for %s, clearing old one."), *VictimController->GetName());
-            GetWorldTimerManager().ClearTimer(TimerHandle); // Zrus predchadzajuci casovac, ak nejaky bol (napr. rychle umrtia)
-        }
+		FTimerHandle& TimerHandle = RespawnTimerHandles.FindOrAdd(VictimController); // Ziskaj existujuci casovac alebo pridaj novy
+		if (GetWorldTimerManager().IsTimerActive(TimerHandle))
+		{
+			// UE_LOG(LogTemp, Warning, TEXT("Respawn timer already active for %s, clearing old one."), *VictimController->GetName());
+			GetWorldTimerManager().ClearTimer(TimerHandle); // Zrus predchadzajuci casovac, ak nejaky bol (napr. rychle umrtia)
+		}
 
-        FTimerDelegate RespawnDelegate;
-        RespawnDelegate.BindUFunction(this, FName("RespawnPlayer"), VictimController);
-        GetWorldTimerManager().SetTimer(TimerHandle, RespawnDelegate, RespawnDelay, false); // Pouzi premennu RespawnDelay (oneskorenie ozivenia)
-        // UE_LOG(LogTemp, Log, TEXT("Respawn timer set for %s (%.2f seconds)"), *VictimController->GetName(), RespawnDelay);
+		FTimerDelegate RespawnDelegate;
+		RespawnDelegate.BindUFunction(this, FName("RespawnPlayer"), VictimController);
+		GetWorldTimerManager().SetTimer(TimerHandle, RespawnDelegate, RespawnDelay, false); // Pouzi premennu RespawnDelay (oneskorenie ozivenia)
+		// UE_LOG(LogTemp, Log, TEXT("Respawn timer set for %s (%.2f seconds)"), *VictimController->GetName(), RespawnDelay);
 	}
-    else
-    {
-        // UE_LOG(LogTemp, Warning, TEXT("PlayerKilled: VictimController is NULL, cannot start respawn timer."));
-    }
+	else
+	{
+		// UE_LOG(LogTemp, Warning, TEXT("PlayerKilled: VictimController is NULL, cannot start respawn timer."));
+	}
 }
 
 AActor* AMyGameMode::ChoosePlayerStart_Implementation(AController* Player)
@@ -143,59 +143,59 @@ AActor* AMyGameMode::ChoosePlayerStart_Implementation(AController* Player)
 void AMyGameMode::RespawnPlayer(AController* PlayerController)
 {
 	if (!PlayerController)
-    {
-        // UE_LOG(LogTemp, Error, TEXT("RespawnPlayer called with NULL Controller!"));
-        return;
-    }
+	{
+		// UE_LOG(LogTemp, Error, TEXT("RespawnPlayer called with NULL Controller!"));
+		return;
+	}
 
-    // UE_LOG(LogTemp, Log, TEXT("Attempting to respawn player %s"), *PlayerController->GetName());
+	// UE_LOG(LogTemp, Log, TEXT("Attempting to respawn player %s"), *PlayerController->GetName());
 
-    // Uprac casovac pre tohto hraca
-    RespawnTimerHandles.Remove(PlayerController);
+	// Uprac casovac pre tohto hraca
+	RespawnTimerHandles.Remove(PlayerController);
 
-    // Najdi miesto narodenia
-    AActor* SpawnPoint = FindPlayerStart(PlayerController); // Pouzi funkciu FindPlayerStart z GameMode, ktora vola ChoosePlayerStart
+	// Najdi miesto narodenia
+	AActor* SpawnPoint = FindPlayerStart(PlayerController); // Pouzi funkciu FindPlayerStart z GameMode, ktora vola ChoosePlayerStart
 
-    if (SpawnPoint)
-    {
-        // UE_LOG(LogTemp, Log, TEXT("Respawning %s at %s"), *PlayerController->GetName(), *SpawnPoint->GetName());
-        RestartPlayerAtPlayerStart(PlayerController, SpawnPoint);
-    }
-    else
-    {
-        // UE_LOG(LogTemp, Warning, TEXT("No suitable PlayerStart found for %s. Using default RestartPlayer."), *PlayerController->GetName());
-        RestartPlayer(PlayerController); // Pouzi predvolenu logiku narodenia, ak sa nenaslo ziadne miesto
-    }
+	if (SpawnPoint)
+	{
+		// UE_LOG(LogTemp, Log, TEXT("Respawning %s at %s"), *PlayerController->GetName(), *SpawnPoint->GetName());
+		RestartPlayerAtPlayerStart(PlayerController, SpawnPoint);
+	}
+	else
+	{
+		// UE_LOG(LogTemp, Warning, TEXT("No suitable PlayerStart found for %s. Using default RestartPlayer."), *PlayerController->GetName());
+		RestartPlayer(PlayerController); // Pouzi predvolenu logiku narodenia, ak sa nenaslo ziadne miesto
+	}
 
-    // Moznost: Obnov zdravie/naboje na novo narodenej postavicke, ak to nerobi konstruktor
-    // AMyCharacter* NewPawn = Cast<AMyCharacter>(PlayerController->GetPawn());
-    // if (NewPawn) { // Reset stats if needed }
+	// Moznost: Obnov zdravie/naboje na novo narodenej postavicke, ak to nerobi konstruktor
+	// AMyCharacter* NewPawn = Cast<AMyCharacter>(PlayerController->GetPawn());
+	// if (NewPawn) { // Reset stats if needed }
 }
 
 void AMyGameMode::Logout(AController* Exiting)
 {
-    // UE_LOG(LogTemp, Log, TEXT("Player %s is logging out."), Exiting ? *Exiting->GetName() : TEXT("NULL"));
+	// UE_LOG(LogTemp, Log, TEXT("Player %s is logging out."), Exiting ? *Exiting->GetName() : TEXT("NULL"));
 
-    // Uprac pripadny cakajuci casovac ozivenia pre odchadzajuceho hraca
-    if (Exiting)
-    {
-        FTimerHandle* TimerHandlePtr = RespawnTimerHandles.Find(Exiting);
-        if (TimerHandlePtr && GetWorldTimerManager().IsTimerActive(*TimerHandlePtr))
-        {
-            // UE_LOG(LogTemp, Log, TEXT("Clearing respawn timer for logging out player %s."), *Exiting->GetName());
-            GetWorldTimerManager().ClearTimer(*TimerHandlePtr);
-        }
-        RespawnTimerHandles.Remove(Exiting);
-    }
+	// Uprac pripadny cakajuci casovac ozivenia pre odchadzajuceho hraca
+	if (Exiting)
+	{
+		FTimerHandle* TimerHandlePtr = RespawnTimerHandles.Find(Exiting);
+		if (TimerHandlePtr && GetWorldTimerManager().IsTimerActive(*TimerHandlePtr))
+		{
+			// UE_LOG(LogTemp, Log, TEXT("Clearing respawn timer for logging out player %s."), *Exiting->GetName());
+			GetWorldTimerManager().ClearTimer(*TimerHandlePtr);
+		}
+		RespawnTimerHandles.Remove(Exiting);
+	}
 
-    // Moznost: Informuj stav hry alebo ostatnych hracov o odpojeni
-    AMyGameState* MyGameState = GetGameState<AMyGameState>();
-    AMyPlayerState* PS = Exiting ? Cast<AMyPlayerState>(Exiting->PlayerState) : nullptr;
-    if (MyGameState && PS)
-    {
-        FString LogoutMessage = FString::Printf(TEXT("%s left the game."), *PS->GetPlayerName());
-        MyGameState->AddKillFeedMessage(LogoutMessage);
-    }
+	// Moznost: Informuj stav hry alebo ostatnych hracov o odpojeni
+	AMyGameState* MyGameState = GetGameState<AMyGameState>();
+	AMyPlayerState* PS = Exiting ? Cast<AMyPlayerState>(Exiting->PlayerState) : nullptr;
+	if (MyGameState && PS)
+	{
+		FString LogoutMessage = FString::Printf(TEXT("%s left the game."), *PS->GetPlayerName());
+		MyGameState->AddKillFeedMessage(LogoutMessage);
+	}
 
 	Super::Logout(Exiting); // Zavolaj kod z rodicovskej triedy
 }

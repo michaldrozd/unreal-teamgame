@@ -25,17 +25,17 @@ public:
 	virtual void Logout(AController* Exiting) override;
 
 protected:
-    // Upravene, aby sa dalo vybrat miesto narodenia (spawn point)
-    virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
+	// Upravene, aby sa dalo vybrat miesto narodenia (spawn point)
+	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
 
 	// Funkcia, ktora riesi samotne ozivenie
 	void RespawnPlayer(AController* PlayerController);
 
-    // Casovac pre oneskorenie ozivenia
-    // Pouzivame TMap, aby sme mohli mat viac casovacov naraz (pre viac hracov)
-    TMap<AController*, FTimerHandle> RespawnTimerHandles;
+	// Casovac pre oneskorenie ozivenia
+	// Pouzivame TMap, aby sme mohli mat viac casovacov naraz (pre viac hracov)
+	TMap<TObjectPtr<AController>, FTimerHandle> RespawnTimerHandles;
 
-    // Oneskorenie ozivenia v sekundach
-    UPROPERTY(EditDefaultsOnly, Category="Game Rules")
-    float RespawnDelay = 5.0f;
+	// Oneskorenie ozivenia v sekundach
+	UPROPERTY(EditDefaultsOnly, Category = "Game Rules")
+	float RespawnDelay = 5.0f;
 };

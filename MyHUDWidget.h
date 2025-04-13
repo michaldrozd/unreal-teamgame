@@ -20,13 +20,13 @@ class UMyHUDWidget : public UUserWidget
 public:
 	// Prepoj UMG textove polia vytvorene v editore s tymito premennymi
 	UPROPERTY(meta = (BindWidget))
-	UTextBlock* KillCountText;
+	TObjectPtr<UTextBlock> KillCountText;
 
 	UPROPERTY(meta = (BindWidget))
-	UTextBlock* DeathCountText;
+	TObjectPtr<UTextBlock> DeathCountText;
 
 	UPROPERTY(meta = (BindWidget))
-	UTextBlock* KillFeedText; // Uisti sa, ze toto meno sedi s menom premennej v UMG editore
+	TObjectPtr<UTextBlock> KillFeedText; // Uisti sa, ze toto meno sedi s menom premennej v UMG editore
 
 	// Funkcie na zmenu textu, volatelne z MyHUD
 	UFUNCTION(BlueprintCallable, Category = "HUD")
@@ -39,6 +39,6 @@ public:
 	void UpdateKillFeed(const TArray<FString>& Messages);
 
 protected:
-    // Volane, ked sa widget vytvori. Dobre miesto pre pociatocne nastavenia.
-    virtual void NativeConstruct() override;
+	// Volane, ked sa widget vytvori. Dobre miesto pre pociatocne nastavenia.
+	virtual void NativeConstruct() override;
 };

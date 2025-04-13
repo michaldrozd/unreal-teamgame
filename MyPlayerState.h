@@ -44,10 +44,10 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
     // Pomocna funkcia na pripravenie HUDu na strane klienta
-    // UFUNCTION(Client, Reliable) // Pouzi, ak potrebujes RPC (specialne volanie), inak staci priame volanie z OnRep
-    // void ClientInitializeHUD();
+	// UFUNCTION(Client, Reliable) // Pouzi, ak potrebujes RPC (specialne volanie), inak staci priame volanie z OnRep
+	// void ClientInitializeHUD();
 
 private:
-    // Pomocna funkcia na aktualizaciu HUDu (volana na serveri a u klientov cez OnRep)
-    void UpdateHUD();
+	// Pomocna funkcia na aktualizaciu HUDu (volana na serveri a u klientov cez OnRep)
+	void UpdateHUD();
 };

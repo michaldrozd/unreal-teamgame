@@ -30,9 +30,9 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 private:
-    // Pomocna funkcia na aktualizaciu obrazovky (volana na serveri a u klientov)
-    void UpdateHUDKillFeed();
+	// Pomocna funkcia na aktualizaciu obrazovky (volana na serveri a u klientov)
+	void UpdateHUDKillFeed();
 
-    // Maximalny pocet sprav, ktore sa zobrazia naraz
-    const int32 MaxFeedMessages = 5;
+	// Maximalny pocet sprav, ktore sa zobrazia naraz
+	const int32 MaxFeedMessages = 5;
 };

@@ -21,30 +21,30 @@ class AMyCharacter : public ACharacter
 
 	/** Toto urcuje, ktore tlacidla co robia */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputMappingContext* DefaultMappingContext;
+	TObjectPtr<UInputMappingContext> DefaultMappingContext;
 
 	/** Toto je akcia pre strelbu */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* FireAction;
+	TObjectPtr<UInputAction> FireAction;
 
 	/** Toto je akcia pre skok - ak pouzivame novy system ovladania */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* JumpAction;
+	TObjectPtr<UInputAction> JumpAction;
 
 	/** Toto je akcia pre pohyb - ak pouzivame novy system ovladania */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* MoveAction;
+	TObjectPtr<UInputAction> MoveAction;
 
 	/** Toto je akcia pre pozeranie sa okolo - ak pouzivame novy system ovladania */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* LookAction;
+	TObjectPtr<UInputAction> LookAction;
 
 public:
 	AMyCharacter();
 
 	/** Kamera, cez ktoru sa pozeras v hre */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	UCameraComponent* FirstPersonCameraComponent;
+	TObjectPtr<UCameraComponent> FirstPersonCameraComponent;
 
 protected:
 	virtual void BeginPlay() override;
@@ -92,8 +92,8 @@ protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 private:
-    // Pomocna funkcia na zobrazenie informacii na obrazovke hraca
-    void InitializeHUD();
+	// Pomocna funkcia na zobrazenie informacii na obrazovke hraca
+	void InitializeHUD();
 
 public:
 	/** Vrati kameru, cez ktoru sa pozeras */

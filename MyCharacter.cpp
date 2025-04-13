@@ -48,17 +48,16 @@ AMyCharacter::AMyCharacter()
 	// Povie postavicke, aby kazdy moment (frame) nieco robila. Da sa to vypnut pre lepsi vykon.
 	// PrimaryActorTick.bCanEverTick = true; // Vacsinou to netreba, iba ak potrebujes nieco specialne robit kazdy moment
 
-    // Poznamka: Model postavicky (kostra) a animacie sa nastavuju v editore (Blueprint)
+	// Poznamka: Model postavicky (kostra) a animacie sa nastavuju v editore (Blueprint)
 	// v subore odvodeneho blueprintu
 	// (alebo pre pohlad z prvej osoby)
 	// Tu nastavujeme viditelnost a poziciu modelu pre pohlad z prvej osoby
-    GetMesh()->SetOwnerNoSee(true); // Skryje hlavne telo postavicky pred hracom, ktory ju ovlada (aby si nevidel svoje telo)
-    GetMesh()->SetupAttachment(FirstPersonCameraComponent); // Pripoji model ku kamere (alebo vytvori samostatny model ruk)
-    GetMesh()->bCastDynamicShadow = false;
-    GetMesh()->CastShadow = false;
-    //GetMesh()->SetRelativeRotation(FRotator(1.9f, -19.19f, 5.2f)); // Uprav podla potreby
-    //GetMesh()->SetRelativeLocation(FVector(-0.5f, -4.4f, -155.7f)); // Uprav podla potreby
-
+	GetMesh()->SetOwnerNoSee(true); // Skryje hlavne telo postavicky pred hracom, ktory ju ovlada (aby si nevidel svoje telo)
+	GetMesh()->SetupAttachment(FirstPersonCameraComponent); // Pripoji model ku kamere (alebo vytvori samostatny model ruk)
+	GetMesh()->bCastDynamicShadow = false;
+	GetMesh()->CastShadow = false;
+	//GetMesh()->SetRelativeRotation(FRotator(1.9f, -19.19f, 5.2f)); // Uprav podla potreby
+	//GetMesh()->SetRelativeLocation(FVector(-0.5f, -4.4f, -155.7f)); // Uprav podla potreby
 }
 
 void AMyCharacter::BeginPlay()
@@ -90,28 +89,28 @@ void AMyCharacter::OnRep_Health()
 
 void AMyCharacter::InitializeHUD()
 {
-    // Tato funkcia sa moze volat, ked server zacne ovladat postavicku
-    // a ked klient dostane informacie o hracovi, aby sa zobrazili spravne udaje
-    // ked su informacie o hracovi pripravene.
-    AMyPlayerState* PS = GetPlayerState<AMyPlayerState>();
-    if (PS && IsLocallyControlled()) // Uisti sa, ze menime len obrazovku hraca na tomto pocitaci
-    {
-        // Ak potrebujes ukazat zdravie priamo z tejto postavicky
-        // Napriklad: Zavolaj funkciu v PlayerState, ktora aktualizuje obrazovku
-        // PS->ClientInitializeHUD();
-    }
+	// Tato funkcia sa moze volat, ked server zacne ovladat postavicku
+	// a ked klient dostane informacie o hracovi, aby sa zobrazili spravne udaje
+	// ked su informacie o hracovi pripravene.
+	AMyPlayerState* PS = GetPlayerState<AMyPlayerState>();
+	if (PS && IsLocallyControlled()) // Uisti sa, ze menime len obrazovku hraca na tomto pocitaci
+	{
+		// Ak potrebujes ukazat zdravie priamo z tejto postavicky
+		// Napriklad: Zavolaj funkciu v PlayerState, ktora aktualizuje obrazovku
+		// PS->ClientInitializeHUD();
+	}
 }
 
 void AMyCharacter::PossessedBy(AController* NewController)
 {
-    Super::PossessedBy(NewController);
-    InitializeHUD(); // Pripravi zobrazenie pre hraca, ktory je zaroven serverom
+	Super::PossessedBy(NewController);
+	InitializeHUD(); // Pripravi zobrazenie pre hraca, ktory je zaroven serverom
 }
 
 void AMyCharacter::OnRep_PlayerState()
 {
-    Super::OnRep_PlayerState();
-    InitializeHUD(); // Pripravi zobrazenie pre klientov, ked dostanu informacie o hracovi
+	Super::OnRep_PlayerState();
+	InitializeHUD(); // Pripravi zobrazenie pre klientov, ked dostanu informacie o hracovi
 }
 
 
@@ -126,17 +125,17 @@ void AMyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	// Pouzije novy system pre ovladanie
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		//Strelba
+		// Strelba
 		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &AMyCharacter::StartFire);
 
-		//Skok (ak pouzivame novy system)
+		// Skok (ak pouzivame novy system)
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
-		//Pohyb (ak pouzivame novy system)
+		// Pohyb (ak pouzivame novy system)
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AMyCharacter::Move);
 
-		//Pozeranie (ak pouzivame novy system)
+		// Pozeranie (ak pouzivame novy system)
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMyCharacter::Look);
 	}
 }
@@ -179,8 +178,8 @@ void AMyCharacter::Look(const FInputActionValue& Value)
 
 void AMyCharacter::StartFire(const FInputActionValue& Value) // Upravene pre Enhanced Input
 {
-    // Hned zobraz efekt strelby u hraca (napr. zablesk pri hlavni)
-    // UE_LOG(LogTemp, Warning, TEXT("StartFire Called (Client or Server Local)"));
+	// Hned zobraz efekt strelby u hraca (napr. zablesk pri hlavni)
+	// UE_LOG(LogTemp, Warning, TEXT("StartFire Called (Client or Server Local)"));
 	Server_Fire(); // Zavolaj funkciu na serveri
 }
 
@@ -191,17 +190,20 @@ bool AMyCharacter::Server_Fire_Validate()
 
 void AMyCharacter::Server_Fire_Implementation()
 {
-    // UE_LOG(LogTemp, Warning, TEXT("Server_Fire_Implementation Called on Server"));
+	// UE_LOG(LogTemp, Warning, TEXT("Server_Fire_Implementation Called on Server"));
 
 	// 1. Vystrel "luc" z kamery, aby sme zistili, co sme trafili
 	FVector Start = FVector::ZeroVector;
-    FRotator Rot = FRotator::ZeroRotator;
+	FRotator Rot = FRotator::ZeroRotator;
 
-    // Ziskaj pohlad ovladaca namiesto kamery pre lepsiu presnost
-    AController* MyController = GetController();
-    if (!MyController) return;
+	// Ziskaj pohlad ovladaca namiesto kamery pre lepsiu presnost
+	AController* MyController = GetController();
+	if (!MyController)
+	{
+		return;
+	}
 
-    MyController->GetPlayerViewPoint(Start, Rot);
+	MyController->GetPlayerViewPoint(Start, Rot);
 	FVector ForwardVector = Rot.Vector(); // Pouzi smer otocenia ovladaca
 	FVector End = Start + (ForwardVector * 10000.0f); // Uprav dosah strely podla potreby
 	FHitResult Hit;
@@ -216,24 +218,24 @@ void AMyCharacter::Server_Fire_Implementation()
 
 	if (bHit && Hit.GetActor())
 	{
-        // UE_LOG(LogTemp, Warning, TEXT("Server Fire Hit: %s"), *Hit.GetActor()->GetName());
+		// UE_LOG(LogTemp, Warning, TEXT("Server Fire Hit: %s"), *Hit.GetActor()->GetName());
 		// 2. Skontroluj, ci trafena vec je ina postavicka hraca
 		AMyCharacter* HitCharacter = Cast<AMyCharacter>(Hit.GetActor());
 		if (HitCharacter && HitCharacter != this) // Uisti sa, ze je to postavicka a nie ty sam
 		{
-            // UE_LOG(LogTemp, Warning, TEXT("Applying Damage to: %s"), *HitCharacter->GetName());
+			// UE_LOG(LogTemp, Warning, TEXT("Applying Damage to: %s"), *HitCharacter->GetName());
 			// 3. Daj zranenie
 			float DamageAmount = 25.0f; // Priklad velkosti zranenia
 			FPointDamageEvent DamageEvent(DamageAmount, Hit, ForwardVector, nullptr);
 			// EventInstigator je ovladac (hrac alebo AI), ktory sposobil zranenie
 			HitCharacter->TakeDamage(DamageAmount, DamageEvent, MyController, this);
 		}
-        // Moznost: Daj zranenie aj inym veciam, ktore sa daju rozbit
+		// Moznost: Daj zranenie aj inym veciam, ktore sa daju rozbit
 	}
-    else
-    {
-       // UE_LOG(LogTemp, Warning, TEXT("Server Fire Missed or Hit Non-Actor"));
-    }
+	else
+	{
+		// UE_LOG(LogTemp, Warning, TEXT("Server Fire Missed or Hit Non-Actor"));
+	}
 }
 
 // Urob funkciu Multicast_PlayFireEffects, ak treba (zvuk, zablesk)
@@ -244,16 +246,16 @@ float AMyCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& Da
 	// Spracuj zranenie iba na serveri
 	if (GetLocalRole() < ROLE_Authority)
 	{
-        // UE_LOG(LogTemp, Warning, TEXT("TakeDamage called on client for %s, ignoring."), *GetName());
+		// UE_LOG(LogTemp, Warning, TEXT("TakeDamage called on client for %s, ignoring."), *GetName());
 		return 0.f;
 	}
 
-    // UE_LOG(LogTemp, Warning, TEXT("%s Taking Damage: %.2f from %s (Instigator: %s)"),
-    //     *GetName(),
-    //     DamageAmount,
-    //     DamageCauser ? *DamageCauser->GetName() : TEXT("None"),
-    //     EventInstigator ? *EventInstigator->GetName() : TEXT("None")
-    // );
+	// UE_LOG(LogTemp, Warning, TEXT("%s Taking Damage: %.2f from %s (Instigator: %s)"),
+	//     *GetName(),
+	//     DamageAmount,
+	//     DamageCauser ? *DamageCauser->GetName() : TEXT("None"),
+	//     EventInstigator ? *EventInstigator->GetName() : TEXT("None")
+	// );
 
 
 	// Neprijimaj zranenie, ak uz si mrtvy
@@ -266,16 +268,16 @@ float AMyCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& Da
 	if (ActualDamage > 0.f)
 	{
 		CurrentHealth -= ActualDamage;
-        // UE_LOG(LogTemp, Warning, TEXT("%s Health: %.2f"), *GetName(), CurrentHealth);
+		// UE_LOG(LogTemp, Warning, TEXT("%s Health: %.2f"), *GetName(), CurrentHealth);
 		if (CurrentHealth <= 0.f)
 		{
-            // UE_LOG(LogTemp, Warning, TEXT("%s Died."), *GetName());
+			// UE_LOG(LogTemp, Warning, TEXT("%s Died."), *GetName());
 			Die(EventInstigator);
 		}
-        else
-        {
-            // Moznost: Prehraj zvuk bolesti/efekt cez Multicast RPC, ak treba
-        }
+		else
+		{
+			// Moznost: Prehraj zvuk bolesti/efekt cez Multicast RPC, ak treba
+		}
 	}
 	return ActualDamage;
 }
@@ -285,64 +287,64 @@ void AMyCharacter::Die(AController* KillerController)
 	// Uisti sa, ze logika smrti bezi iba na serveri
 	if (GetLocalRole() == ROLE_Authority)
 	{
-        // UE_LOG(LogTemp, Warning, TEXT("Die function executing on server for %s"), *GetName());
+		// UE_LOG(LogTemp, Warning, TEXT("Die function executing on server for %s"), *GetName());
 
 		// Povedz hernemu modu (pravidlam hry), ze doslo k zabitiu
 		AMyGameMode* GM = GetWorld()->GetAuthGameMode<AMyGameMode>();
 		if (GM)
 		{
-            // UE_LOG(LogTemp, Warning, TEXT("Notifying GameMode about kill. Victim: %s, Killer: %s"),
-            //     Controller ? *Controller->GetName() : TEXT("None"),
-            //     KillerController ? *KillerController->GetName() : TEXT("None")
-            // );
+			// UE_LOG(LogTemp, Warning, TEXT("Notifying GameMode about kill. Victim: %s, Killer: %s"),
+			//     Controller ? *Controller->GetName() : TEXT("None"),
+			//     KillerController ? *KillerController->GetName() : TEXT("None")
+			// );
 			GM->PlayerKilled(GetController(), KillerController);
 		}
-        else
-        {
-            // UE_LOG(LogTemp, Warning, TEXT("Could not get MyGameMode on server during Die."));
-        }
+		else
+		{
+			// UE_LOG(LogTemp, Warning, TEXT("Could not get MyGameMode on server during Die."));
+		}
 
 		// --- Efekty pri smrti ---
-        Multicast_Ragdoll(); // Spusti "hadrovu babiku" (ragdoll) u vsetkych hracov
+		Multicast_Ragdoll(); // Spusti "hadrovu babiku" (ragdoll) u vsetkych hracov
 
-        // Vypni koliziu (narazanie) na kapsuli
-        GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-        GetCharacterMovement()->DisableMovement(); // Zastav pohyb
+		// Vypni koliziu (narazanie) na kapsuli
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		GetCharacterMovement()->DisableMovement(); // Zastav pohyb
 
-        // Odpoj ovladac a vypni ovladanie (dolezite!)
-        if (Controller)
-        {
-            Controller->UnPossess();
-            // Moznost: Vypni ovladanie na ovladaci, ak stale existuje (napr. umela inteligencia)
-            // APlayerController* PC = Cast<APlayerController>(Controller);
-            // if(PC) PC->DisableInput(PC);
-        }
+		// Odpoj ovladac a vypni ovladanie (dolezite!)
+		if (Controller)
+		{
+			Controller->UnPossess();
+			// Moznost: Vypni ovladanie na ovladaci, ak stale existuje (napr. umela inteligencia)
+			// APlayerController* PC = Cast<APlayerController>(Controller);
+			// if(PC) PC->DisableInput(PC);
+		}
 
-        // Nastav cas, po ktorom postavicka zmizne z hry
+		// Nastav cas, po ktorom postavicka zmizne z hry
 		SetLifeSpan(5.0f);
 	}
-    else
-    {
-       // UE_LOG(LogTemp, Warning, TEXT("Die function called on client for %s, ignoring server logic."), *GetName());
-    }
+	else
+	{
+		// UE_LOG(LogTemp, Warning, TEXT("Die function called on client for %s, ignoring server logic."), *GetName());
+	}
 }
 
 void AMyCharacter::Multicast_Ragdoll_Implementation()
 {
-    // UE_LOG(LogTemp, Warning, TEXT("Multicast_Ragdoll executing on %s"), *GetName());
+	// UE_LOG(LogTemp, Warning, TEXT("Multicast_Ragdoll executing on %s"), *GetName());
 	USkeletalMeshComponent* CharacterMesh = GetMesh(); // Pouzi GetMesh(), co je standard pre postavu
 	if (CharacterMesh)
 	{
-        // UE_LOG(LogTemp, Warning, TEXT("Enabling physics on mesh for %s"), *GetName());
+		// UE_LOG(LogTemp, Warning, TEXT("Enabling physics on mesh for %s"), *GetName());
 		CharacterMesh->SetCollisionProfileName(TEXT("Ragdoll")); // Uisti sa, ze profil pre Ragdoll existuje a je spravne nastaveny
 		CharacterMesh->SetSimulatePhysics(true);
-        CharacterMesh->SetOwnerNoSee(false); // Uisti sa, ze model je teraz viditelny
+		CharacterMesh->SetOwnerNoSee(false); // Uisti sa, ze model je teraz viditelny
 	}
-    else
-    {
-        // UE_LOG(LogTemp, Warning, TEXT("Could not get mesh for ragdoll on %s"), *GetName());
-    }
+	else
+	{
+		// UE_LOG(LogTemp, Warning, TEXT("Could not get mesh for ragdoll on %s"), *GetName());
+	}
 
-    // Vypni koliziu kapsule aj u klientov, aby to bolo rovnake ako na serveri
-    GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	// Vypni koliziu kapsule aj u klientov, aby to bolo rovnake ako na serveri
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }

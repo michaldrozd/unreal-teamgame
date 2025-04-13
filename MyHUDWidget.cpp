@@ -7,10 +7,10 @@ void UMyHUDWidget::NativeConstruct()
 {
     Super::NativeConstruct();
 
-    // Nastav textove polia na pociatocne hodnoty alebo stav nacitavania
-    UpdateKillCount(0);
-    UpdateDeathCount(0);
-    UpdateKillFeed({}); // Na zaciatku posli prazdne pole
+	// Nastav textove polia na pociatocne hodnoty alebo stav nacitavania
+	UpdateKillCount(0);
+	UpdateDeathCount(0);
+	UpdateKillFeed({}); // Na zaciatku posli prazdne pole
 }
 
 
@@ -20,7 +20,7 @@ void UMyHUDWidget::UpdateKillCount(int32 Kills)
 	{
 		KillCountText->SetText(FText::FromString(FString::Printf(TEXT("Zabitia: %d"), Kills))); // Zmeneny text na Slovensky
 	}
-    // else { UE_LOG(LogTemp, Warning, TEXT("UMyHUDWidget::UpdateKillCount - KillCountText is null")); }
+	// else { UE_LOG(LogTemp, Warning, TEXT("UMyHUDWidget::UpdateKillCount - KillCountText is null")); }
 }
 
 void UMyHUDWidget::UpdateDeathCount(int32 Deaths)
@@ -29,7 +29,7 @@ void UMyHUDWidget::UpdateDeathCount(int32 Deaths)
 	{
 		DeathCountText->SetText(FText::FromString(FString::Printf(TEXT("Smrti: %d"), Deaths))); // Zmeneny text na Slovensky
 	}
-    // else { UE_LOG(LogTemp, Warning, TEXT("UMyHUDWidget::UpdateDeathCount - DeathCountText is null")); }
+	// else { UE_LOG(LogTemp, Warning, TEXT("UMyHUDWidget::UpdateDeathCount - DeathCountText is null")); }
 }
 
 void UMyHUDWidget::UpdateKillFeed(const TArray<FString>& Messages)
@@ -43,5 +43,5 @@ void UMyHUDWidget::UpdateKillFeed(const TArray<FString>& Messages)
 		}
 		KillFeedText->SetText(FText::FromString(FeedContent.TrimEnd())); // Odstran posledny prazdny riadok
 	}
-    // else { UE_LOG(LogTemp, Warning, TEXT("UMyHUDWidget::UpdateKillFeed - KillFeedText is null")); }
+	// else { UE_LOG(LogTemp, Warning, TEXT("UMyHUDWidget::UpdateKillFeed - KillFeedText is null")); }
 }

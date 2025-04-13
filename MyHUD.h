@@ -34,5 +34,5 @@ protected:
 
 	// Vytvoreny widget.
 	UPROPERTY() // Pamataj si vytvoreny widget
-	UMyHUDWidget* HUDWidget;
+	TObjectPtr<UMyHUDWidget> HUDWidget;
 };
