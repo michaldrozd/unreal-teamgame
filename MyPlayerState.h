@@ -49,5 +49,6 @@ public:
 
 private:
 	// Pomocna funkcia na aktualizaciu HUDu (volana na serveri a u klientov cez OnRep)
+	// Aktualizuje HUD lokalneho hraca s aktualnymi statistikami (Kills, Deaths).
 	void UpdateHUD();
 };
