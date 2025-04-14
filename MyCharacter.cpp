@@ -254,10 +254,40 @@ void AMyCharacter::Server_Fire_Implementation()
 	{
 		// UE_LOG(LogTemp, Warning, TEXT("Server Fire Missed or Hit Non-Actor"));
 	}
+
+	// Aktualizuj cas posledneho vystrelu, aj ked si netrafil
+	LastFireTime = GetWorld()->GetTimeSeconds();
+
+	// Prehraj efekty strelby u vsetkych
+	Multicast_PlayFireEffects();
 }
 
-// Urob funkciu Multicast_PlayFireEffects, ak treba (zvuk, zablesk)
-// void AMyCharacter::Multicast_PlayFireEffects_Implementation() { ... }
+// Prehra efekty strelby (zvuk, zablesk) na vsetkych klientoch a serveri.
+void AMyCharacter::Multicast_PlayFireEffects_Implementation()
+{
+	// Prehraj zvuk strelby
+	if (FireSound)
+	{
+		// Moznost 1: Zvuk na mieste postavicky
+		// UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
+
+		// Moznost 2: Zvuk pripojeny k modelu (lepsie pre 3D zvuk)
+		// Potrebujes mat spravne nastaveny model v GetMesh()
+		UGameplayStatics::SpawnSoundAttached(FireSound, GetMesh(), NAME_None, FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTarget, false);
+		// Ak mas specificky socket pre hlaven zbrane na modeli, pouzi ho namiesto NAME_None
+		// napr. UGameplayStatics::SpawnSoundAttached(FireSound, GetMesh(), FName("MuzzleSocket"));
+	}
+
+	// Zobraz efekt zablesku
+	if (MuzzleFlashFX)
+	{
+		// Potrebujes mat spravne nastaveny model v GetMesh()
+		// Ak mas specificky socket pre hlaven zbrane na modeli, pouzi ho namiesto NAME_None
+		// napr. UGameplayStatics::SpawnEmitterAttached(MuzzleFlashFX, GetMesh(), FName("MuzzleSocket"), FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTarget);
+		UGameplayStatics::SpawnEmitterAttached(MuzzleFlashFX, GetMesh(), NAME_None, FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTarget);
+	}
+}
+
 
 // Spracovava prijate poskodenie. Volane iba na serveri. Zmensuje zdravie a vola Die, ak zdravie klesne na 0.
 float AMyCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
