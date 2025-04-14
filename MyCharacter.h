@@ -13,6 +13,9 @@ class UInputMappingContext;
 class UInputAction;
 // Povieme pocitacu, ze tato vec existuje, ale detaily su inde
 class UCameraComponent;
+// Povieme pocitacu, ze tieto assety existuju
+class USoundBase;
+class UParticleSystem; // Alebo UNiagaraSystem, ak pouzivas Niagara
 
 UCLASS(config=Game)
 class AMyCharacter : public ACharacter
@@ -38,6 +41,14 @@ class AMyCharacter : public ACharacter
 	/** Toto je akcia pre pozeranie sa okolo - ak pouzivame novy system ovladania */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInputAction> LookAction;
+
+	/** Zvuk, ktory sa prehra pri vystrele */
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon FX")
+	TObjectPtr<USoundBase> FireSound;
+
+	/** Efekt castic (napr. zablesk), ktory sa zobrazi pri vystrele */
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon FX")
+	TObjectPtr<UParticleSystem> MuzzleFlashFX; // Alebo UNiagaraSystem
 
 public:
 	AMyCharacter();
@@ -87,6 +98,10 @@ protected:
 	// Veci pre strelbu
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_Fire();
+
+	// Funkcia na prehratie efektov strelby u vsetkych klientov
+	UFUNCTION(NetMulticast, Unreliable) // Unreliable je OK pre kozmeticke efekty
+	void Multicast_PlayFireEffects();
 
 	// Posielanie informacii ostatnym hracom
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;

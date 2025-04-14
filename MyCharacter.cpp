@@ -13,8 +13,13 @@
 #include "Kismet/GameplayStatics.h"
 #include "MyGameMode.h" // Include GameMode for death notification
 #include "MyPlayerState.h" // Include PlayerState for getting info
-#include "GameFramework/PlayerController.h" // For disabling input
+#include "MyHUD.h" // Include HUD for updating health display
+#include "GameFramework/PlayerController.h" // For disabling input and getting HUD
 #include "Components/SkeletalMeshComponent.h" // For ragdoll mesh access
+#include "Kismet/GameplayStatics.h" // For playing sounds and spawning emitters
+#include "Sound/SoundBase.h" // For USoundBase
+#include "Particles/ParticleSystem.h" // For UParticleSystem
+#include "Particles/ParticleSystemComponent.h" // For spawning emitters
 
 //////////////////////////////////////////////////////////////////////////
 // AMyCharacter
