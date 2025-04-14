@@ -364,3 +364,25 @@ void AMyCharacter::Multicast_Ragdoll_Implementation()
 	// Vypni koliziu kapsule aj u klientov, aby to bolo rovnake ako na serveri
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
+
+
+// Pomocna funkcia na aktualizaciu zdravia na HUD pre lokalneho hraca.
+void AMyCharacter::UpdateHUDHealth()
+{
+	// Ziskaj lokalneho ovladaca
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	if (PC && PC->IsLocalController())
+	{
+		// Ziskaj HUD
+		AMyHUD* HUD = Cast<AMyHUD>(PC->GetHUD());
+		if (HUD)
+		{
+			// Aktualizuj zdravie
+			HUD->UpdateHealth(CurrentHealth, MaxHealth);
+		}
+		// else { UE_LOG(LogTemp, Warning, TEXT("UpdateHUDHealth: Could not get MyHUD for %s"), *GetName()); }
+	}
+	// else { // Toto sa moze stat na serveri alebo u neovladanych postaviciek, co je v poriadku
+	//     // UE_LOG(LogTemp, Log, TEXT("UpdateHUDHealth: Not a local controller for %s"), *GetName());
+	// }
+}
