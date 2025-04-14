@@ -16,9 +16,10 @@ class AMyPlayerState : public APlayerState
 	GENERATED_BODY()
 
 public:
+	// Konstruktor pre PlayerState.
     AMyPlayerState();
 
-	// Volane, ked sa stav posle ZO servera klientom
+	// Volane u klientov, ked sa zmeni standardna premenna Score.
 	virtual void OnRep_Score() override; // Priklad prepisania, ak pouzivas zakladne Skore
 	// virtual void OnRep_PlayerName() override; // Priklad prepisania
 
@@ -30,20 +31,25 @@ public:
 	int32 Deaths;
 
 	// Funkcie, ktore sa spustia u klientov, ked sa zmenia vlastne statistiky
+	// Volane u klientov, ked sa zmeni premenna Kills.
 	UFUNCTION()
 	void OnRep_Kills();
 
+	// Volane u klientov, ked sa zmeni premenna Deaths.
 	UFUNCTION()
 	void OnRep_Deaths();
 
 	// Funkcie volane hernym modom na SERVERI na zmenu statistik
+	// Prida jedno zabitie hracovi. Volane iba na serveri.
 	void AddKill();
+	// Prida jednu smrt hracovi. Volane iba na serveri.
 	void AddDeath();
 
 	// Nastavenie posielania informacii ostatnym hracom
+	// Definuje, ktore premenne sa maju posielat (replikovat) cez siet.
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-    // Pomocna funkcia na pripravenie HUDu na strane klienta
+	// Pomocna funkcia na pripravenie HUDu na strane klienta
 	// UFUNCTION(Client, Reliable) // Pouzi, ak potrebujes RPC (specialne volanie), inak staci priame volanie z OnRep
 	// void ClientInitializeHUD();
 

@@ -5,6 +5,7 @@
 #include "GameFramework/PlayerController.h" // Pre ziskanie ovladaca lokalneho hraca
 #include "Kismet/GameplayStatics.h" // Pre funkciu GetPlayerController
 
+// Definuje, ktore premenne sa maju posielat (replikovat) cez siet.
 void AMyGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -13,6 +14,7 @@ void AMyGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(AMyGameState, KillFeedMessages);
 }
 
+// Prida novu spravu do kill feedu. Volane iba na serveri.
 void AMyGameState::AddKillFeedMessage(const FString& Message)
 {
 	// Tato funkcia sa MUSI volat iba na serveri (vacsinou hernym modom)
@@ -34,6 +36,7 @@ void AMyGameState::AddKillFeedMessage(const FString& Message)
 	}
 }
 
+// Volane u klientov, ked sa zmeni premenna KillFeedMessages (ked server posle aktualizaciu).
 void AMyGameState::OnRep_KillFeed()
 {
 	// Toto sa zavola u klientov, ked pridu nove spravy o zabitiach
@@ -41,6 +44,7 @@ void AMyGameState::OnRep_KillFeed()
 	UpdateHUDKillFeed();
 }
 
+// Aktualizuje cast HUDu zobrazujucu kill feed pre lokalneho hraca.
 void AMyGameState::UpdateHUDKillFeed()
 {
 	// GameState existuje u vsetkych, ale chceme menit len obrazovku *lokalneho* hraca.

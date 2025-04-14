@@ -3,6 +3,7 @@
 #include "Components/TextBlock.h" // Nacitaj skutocny kod pre TextBlock
 #include "Containers/UnrealString.h" // Pre pracu s textom (FString)
 
+// Volane, ked sa widget vytvori. Nastavuje pociatocne hodnoty textovych poli.
 void UMyHUDWidget::NativeConstruct()
 {
     Super::NativeConstruct();
@@ -13,7 +14,7 @@ void UMyHUDWidget::NativeConstruct()
 	UpdateKillFeed({}); // Na zaciatku posli prazdne pole
 }
 
-
+// Aktualizuje text zobrazujuci pocet zabiti.
 void UMyHUDWidget::UpdateKillCount(int32 Kills)
 {
 	if (KillCountText)
@@ -23,6 +24,7 @@ void UMyHUDWidget::UpdateKillCount(int32 Kills)
 	// else { UE_LOG(LogTemp, Warning, TEXT("UMyHUDWidget::UpdateKillCount - KillCountText is null")); }
 }
 
+// Aktualizuje text zobrazujuci pocet smrti.
 void UMyHUDWidget::UpdateDeathCount(int32 Deaths)
 {
 	if (DeathCountText)
@@ -32,6 +34,7 @@ void UMyHUDWidget::UpdateDeathCount(int32 Deaths)
 	// else { UE_LOG(LogTemp, Warning, TEXT("UMyHUDWidget::UpdateDeathCount - DeathCountText is null")); }
 }
 
+// Aktualizuje text zobrazujuci spravy o zabitiach (kill feed).
 void UMyHUDWidget::UpdateKillFeed(const TArray<FString>& Messages)
 {
 	if (KillFeedText)

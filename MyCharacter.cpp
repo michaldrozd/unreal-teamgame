@@ -19,6 +19,7 @@
 //////////////////////////////////////////////////////////////////////////
 // AMyCharacter
 
+// Konstruktor pre postavu. Nastavuje komponenty a ich pociatocne hodnoty.
 AMyCharacter::AMyCharacter()
 {
 	// Nastavi velkost "neviditelnej kapsule" okolo postavicky, aby vedela, do coho naraza
@@ -60,6 +61,7 @@ AMyCharacter::AMyCharacter()
 	//GetMesh()->SetRelativeLocation(FVector(-0.5f, -4.4f, -155.7f)); // Uprav podla potreby
 }
 
+// Volane na zaciatku hry alebo ked sa postava objavi (spawn). Pridava Input Mapping Context.
 void AMyCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -74,6 +76,7 @@ void AMyCharacter::BeginPlay()
 	}
 }
 
+// Definuje, ktore premenne sa maju posielat (replikovat) cez siet.
 void AMyCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -81,12 +84,14 @@ void AMyCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	// Poznamka: Maximalne zdravie netreba posielat ostatnym, ak sa meni len v editore
 }
 
+// Volane u klientov, ked sa zmeni premenna CurrentHealth (ked server posle aktualizaciu).
 void AMyCharacter::OnRep_Health()
 {
 	// Moznost: Reakcia na zmenu zdravia u hraca (napr. zvuk bolesti, zmena na obrazovke)
 	// Pozor, aby sa to nerobilo dvakrat, ak to uz riesi iny kod (PlayerState/GameState)
 }
 
+// Inicializuje HUD pre lokalneho hraca. Volane po PossessedBy a OnRep_PlayerState.
 void AMyCharacter::InitializeHUD()
 {
 	// Tato funkcia sa moze volat, ked server zacne ovladat postavicku
@@ -101,12 +106,14 @@ void AMyCharacter::InitializeHUD()
 	}
 }
 
+// Volane na serveri, ked ovladac (Controller) prevezme kontrolu nad touto postavou.
 void AMyCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 	InitializeHUD(); // Pripravi zobrazenie pre hraca, ktory je zaroven serverom
 }
 
+// Volane u klientov, ked sa priradi PlayerState k tejto postave.
 void AMyCharacter::OnRep_PlayerState()
 {
 	Super::OnRep_PlayerState();
@@ -117,6 +124,7 @@ void AMyCharacter::OnRep_PlayerState()
 //////////////////////////////////////////////////////////////////////////
 // Vstup (Ovladanie)
 
+// Nastavuje prepojenie medzi vstupnymi akciami (Input Actions) a funkciami v tejto triede.
 void AMyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	// Nastavi, co ktore tlacidla robia v hre
@@ -140,6 +148,7 @@ void AMyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	}
 }
 
+// Spracovava vstup pre pohyb dopredu/dozadu a dolava/doprava.
 void AMyCharacter::Move(const FInputActionValue& Value)
 {
 	// vstup su dve cisla (smer dopredu/dozadu a dolava/doprava)
@@ -163,6 +172,7 @@ void AMyCharacter::Move(const FInputActionValue& Value)
 	}
 }
 
+// Spracovava vstup pre otacanie pohladu (mys).
 void AMyCharacter::Look(const FInputActionValue& Value)
 {
 	// vstup su dve cisla (pohyb mysou hore/dole a dolava/doprava)
@@ -176,6 +186,7 @@ void AMyCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
+// Volane, ked hrac stlaci tlacidlo pre strelbu. Spusti Server_Fire.
 void AMyCharacter::StartFire(const FInputActionValue& Value) // Upravene pre Enhanced Input
 {
 	// Hned zobraz efekt strelby u hraca (napr. zablesk pri hlavni)
@@ -183,11 +194,13 @@ void AMyCharacter::StartFire(const FInputActionValue& Value) // Upravene pre Enh
 	Server_Fire(); // Zavolaj funkciu na serveri
 }
 
+// Validacna funkcia pre Server_Fire. Kontroluje, ci moze server spustit strelbu.
 bool AMyCharacter::Server_Fire_Validate()
 {
 	return true; // Zakladna kontrola, pridaj dalsie, ak treba (napr. ci mas naboje, ci mozes strielat)
 }
 
+// Funkcia pre strelbu vykonavana na serveri. Robi raycast a aplikuje poskodenie.
 void AMyCharacter::Server_Fire_Implementation()
 {
 	// UE_LOG(LogTemp, Warning, TEXT("Server_Fire_Implementation Called on Server"));
@@ -241,6 +254,7 @@ void AMyCharacter::Server_Fire_Implementation()
 // Urob funkciu Multicast_PlayFireEffects, ak treba (zvuk, zablesk)
 // void AMyCharacter::Multicast_PlayFireEffects_Implementation() { ... }
 
+// Spracovava prijate poskodenie. Volane iba na serveri. Zmensuje zdravie a vola Die, ak zdravie klesne na 0.
 float AMyCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
 {
 	// Spracuj zranenie iba na serveri
@@ -282,6 +296,7 @@ float AMyCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& Da
 	return ActualDamage;
 }
 
+// Logika smrti postavy. Volane iba na serveri. Informuje GameMode, spusti ragdoll a nastavi znicenie postavy.
 void AMyCharacter::Die(AController* KillerController)
 {
 	// Uisti sa, ze logika smrti bezi iba na serveri
@@ -329,6 +344,7 @@ void AMyCharacter::Die(AController* KillerController)
 	}
 }
 
+// Funkcia volana na vsetkych klientoch (a serveri) na spustenie ragdoll efektu.
 void AMyCharacter::Multicast_Ragdoll_Implementation()
 {
 	// UE_LOG(LogTemp, Warning, TEXT("Multicast_Ragdoll executing on %s"), *GetName());

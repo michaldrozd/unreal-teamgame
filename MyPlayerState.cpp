@@ -4,13 +4,15 @@
 #include "MyHUD.h" // Nacitaj kod pre tvoje zobrazenie na obrazovke (HUD)
 #include "GameFramework/PlayerController.h" // Pre ziskanie ovladaca, ktory vlastni tento stav
 
+// Konstruktor pre PlayerState. Nastavuje pociatocne hodnoty statistik.
 AMyPlayerState::AMyPlayerState()
 {
     // Nastav pociatocne hodnoty
     Kills = 0;
-    Deaths = 0;
+	Deaths = 0;
 }
 
+// Definuje, ktore premenne sa maju posielat (replikovat) cez siet.
 void AMyPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -20,6 +22,7 @@ void AMyPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	DOREPLIFETIME(AMyPlayerState, Deaths);
 }
 
+// Prida jedno zabitie hracovi. Volane iba na serveri.
 void AMyPlayerState::AddKill()
 {
 	// Tato funkcia sa MUSI volat iba na serveri (vacsinou hernym modom)
@@ -33,6 +36,7 @@ void AMyPlayerState::AddKill()
 	}
 }
 
+// Prida jednu smrt hracovi. Volane iba na serveri.
 void AMyPlayerState::AddDeath()
 {
 	// Tato funkcia sa MUSI volat iba na serveri (vacsinou hernym modom)
@@ -46,13 +50,15 @@ void AMyPlayerState::AddDeath()
 	}
 }
 
+// Volane u klientov, ked sa zmeni standardna premenna Score.
 void AMyPlayerState::OnRep_Score()
 {
     Super::OnRep_Score();
     // Aktualizuj HUD, ak pouzivas zakladne Skore
-    // UpdateHUD();
+	// UpdateHUD();
 }
 
+// Volane u klientov, ked sa zmeni premenna Kills. Aktualizuje HUD.
 void AMyPlayerState::OnRep_Kills()
 {
 	// Toto sa zavola u klientov, ked sa zmeni premenna Kills
@@ -60,6 +66,7 @@ void AMyPlayerState::OnRep_Kills()
 	UpdateHUD();
 }
 
+// Volane u klientov, ked sa zmeni premenna Deaths. Aktualizuje HUD.
 void AMyPlayerState::OnRep_Deaths()
 {
 	// Toto sa zavola u klientov, ked sa zmeni premenna Deaths
@@ -67,6 +74,7 @@ void AMyPlayerState::OnRep_Deaths()
 	UpdateHUD();
 }
 
+// Aktualizuje HUD lokalneho hraca s aktualnymi statistikami (Kills, Deaths).
 void AMyPlayerState::UpdateHUD()
 {
 	// Ziskaj ovladac hraca spojeny s tymto stavom hraca

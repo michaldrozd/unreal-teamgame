@@ -3,11 +3,14 @@
 #include "Blueprint/UserWidget.h" // Pre funkciu CreateWidget (vytvorenie widgetu)
 #include "MyHUDWidget.h" // Nacitaj kod pre samotny widget
 
+// Konstruktor pre HUD triedu.
 AMyHUD::AMyHUD()
 {
     // Konstruktor moze byt prazdny, ak staci predvolene nastavenie
 }
 
+// Volane kratko po starte hry alebo ked sa vytvori HUD.
+// Vytvara a pridava UMG widget na obrazovku.
 void AMyHUD::BeginPlay()
 {
 	Super::BeginPlay();
@@ -36,6 +39,7 @@ void AMyHUD::BeginPlay()
 	// else { UE_LOG(LogTemp, Error, TEXT("AMyHUD::BeginPlay - HUDWidgetClass is not set! Assign WBP_HUD in BP_MyHUD defaults.")); }
 }
 
+// Aktualizuje pocet zabiti zobrazeny na HUD widgete.
 void AMyHUD::UpdateKillCount(int32 Kills)
 {
 	if (HUDWidget)
@@ -46,6 +50,7 @@ void AMyHUD::UpdateKillCount(int32 Kills)
 	// else { UE_LOG(LogTemp, Warning, TEXT("AMyHUD::UpdateKillCount - HUDWidget is null")); }
 }
 
+// Aktualizuje pocet smrti zobrazeny na HUD widgete.
 void AMyHUD::UpdateDeathCount(int32 Deaths)
 {
 	if (HUDWidget)
@@ -56,6 +61,7 @@ void AMyHUD::UpdateDeathCount(int32 Deaths)
 	// else { UE_LOG(LogTemp, Warning, TEXT("AMyHUD::UpdateDeathCount - HUDWidget is null")); }
 }
 
+// Aktualizuje zoznam sprav o zabitiach (kill feed) na HUD widgete.
 void AMyHUD::UpdateKillFeed(const TArray<FString>& Messages)
 {
 	if (HUDWidget)

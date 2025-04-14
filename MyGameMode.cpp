@@ -10,6 +10,7 @@
 #include "TimerManager.h" // Pre casovac ozivenia
 #include "GameFramework/Controller.h" // Zakladna trieda pre ovladace (hracov alebo AI)
 
+// Konstruktor pre GameMode. Nastavuje predvolene triedy pre Pawn, HUD, PlayerState, GameState.
 AMyGameMode::AMyGameMode()
 {
 	// Nastav predvolenu postavicku na nasu vlastnu C++ postavicku
@@ -25,9 +26,10 @@ AMyGameMode::AMyGameMode()
 	GameStateClass = AMyGameState::StaticClass();
 
     // Povol hracom pripojit sa pocas hry
-    bUseSeamlessTravel = true; // Odporucane pre plynulejsie prechody, ale vyzaduje viac nastaveni, ak menis levely
+	bUseSeamlessTravel = true; // Odporucane pre plynulejsie prechody, ale vyzaduje viac nastaveni, ak menis levely
 }
 
+// Volane, ked je hrac zabity. Aktualizuje statistiky (Kills/Deaths), kill feed a spusti casovac pre respawn.
 void AMyGameMode::PlayerKilled(AController* VictimController, AController* KillerController)
 {
     // UE_LOG(LogTemp, Log, TEXT("PlayerKilled: Victim %s, Killer %s"),
@@ -106,6 +108,7 @@ void AMyGameMode::PlayerKilled(AController* VictimController, AController* Kille
 	}
 }
 
+// Vybera miesto narodenia (spawn point) pre hraca. Prechadza vsetky PlayerStart objekty v scene.
 AActor* AMyGameMode::ChoosePlayerStart_Implementation(AController* Player)
 {
     // Vyber miesto narodenia
@@ -139,7 +142,7 @@ AActor* AMyGameMode::ChoosePlayerStart_Implementation(AController* Player)
     return BestStart ? BestStart : Super::ChoosePlayerStart_Implementation(Player); // Vrat najdene miesto alebo pouzi predvolene spravanie
 }
 
-
+// Vykonava samotne ozivenie (respawn) hraca na vybranom mieste narodenia.
 void AMyGameMode::RespawnPlayer(AController* PlayerController)
 {
 	if (!PlayerController)
@@ -172,6 +175,7 @@ void AMyGameMode::RespawnPlayer(AController* PlayerController)
 	// if (NewPawn) { // Reset stats if needed }
 }
 
+// Volane, ked sa hrac odpoji z hry. Uprace casovac respawnu a informuje ostatnych.
 void AMyGameMode::Logout(AController* Exiting)
 {
 	// UE_LOG(LogTemp, Log, TEXT("Player %s is logging out."), Exiting ? *Exiting->GetName() : TEXT("NULL"));
