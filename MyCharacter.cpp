@@ -231,7 +231,8 @@ void AMyCharacter::Server_Fire_Implementation()
 	QueryParams.AddIgnoredActor(this); // Ignoruj sam seba (aby si sa netrafil)
 	QueryParams.bTraceComplex = true;
 
-	bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, QueryParams);
+	// Pouzi novy kolizny kanal pre strelbu namiesto ECC_Visibility
+	bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_GameTraceChannel1, QueryParams); // Predpoklada, ze WeaponTrace je prvy vlastny kanal
 
 	// Moznost: Zavolaj funkciu pre efekty u vsetkych hracov, aj ked si nic netrafil
 	// Multicast_PlayFireEffects(); // Urob toto, ak chces zvuky/efekty strelby u vsetkych
