@@ -35,4 +35,4 @@ Tento projekt predstavuje základnú šablónu pre multiplayerovú strieľačku 
 6.  **Efekty a Zvuky:** V `BP_MyCharacter` priraďte assety pre `FireSound` a `MuzzleFlashFX`. Nastavte aj hodnoty pre `FireRate`, `BaseDamage`, `MaxHealth`, `WeaponRange`, `RagdollLifeSpan`.
 7.  **Kolízny Kanál:** V Project Settings -> Collision vytvorte Trace Channel `WeaponTrace` a nastavte kolízne profily (hlavne `Pawn` musí `Block`-ovať `WeaponTrace`).
 8.  **Spawn Pointy:** Umiestnite do mapy objekty typu `PlayerStart`. `AMyGameMode` ich automaticky nájde a použije na respawn hráčov.
-7.  **Testovanie:** Spustite hru v editore s viacerými hráčmi (nastavenie "Number of Players" v Play options) na otestovanie multiplayer funkcionality.
+9.  **Testovanie:** Spustite hru v editore s viacerými hráčmi (nastavenie "Number of Players" v Play options) na otestovanie multiplayer funkcionality.
