@@ -93,7 +93,8 @@ void AMyCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 void AMyCharacter::OnRep_Health()
 {
 	// Moznost: Reakcia na zmenu zdravia u hraca (napr. zvuk bolesti, zmena na obrazovke)
-	// Pozor, aby sa to nerobilo dvakrat, ak to uz riesi iny kod (PlayerState/GameState)
+	// Aktualizuj HUD pre lokalneho hraca
+	UpdateHUDHealth();
 }
 
 // Inicializuje HUD pre lokalneho hraca. Volane po PossessedBy a OnRep_PlayerState.
@@ -105,9 +106,10 @@ void AMyCharacter::InitializeHUD()
 	AMyPlayerState* PS = GetPlayerState<AMyPlayerState>();
 	if (PS && IsLocallyControlled()) // Uisti sa, ze menime len obrazovku hraca na tomto pocitaci
 	{
-		// Ak potrebujes ukazat zdravie priamo z tejto postavicky
-		// Napriklad: Zavolaj funkciu v PlayerState, ktora aktualizuje obrazovku
-		// PS->ClientInitializeHUD();
+		// Aktualizuj zdravie na HUD pri inicializacii
+		UpdateHUDHealth();
+		// Ak potrebujes inicializovat aj ine veci z PlayerState (Kills/Deaths),
+		// je lepsie mat centralnu funkciu v PlayerState, ktora aktualizuje vsetko.
 	}
 }
 
@@ -242,11 +244,11 @@ void AMyCharacter::Server_Fire_Implementation()
 		if (HitCharacter && HitCharacter != this) // Uisti sa, ze je to postavicka a nie ty sam
 		{
 			// UE_LOG(LogTemp, Warning, TEXT("Applying Damage to: %s"), *HitCharacter->GetName());
-			// 3. Daj zranenie
-			float DamageAmount = 25.0f; // Priklad velkosti zranenia
+			// 3. Daj zranenie - pouzi BaseDamage namiesto priameho cisla
+			float DamageAmount = BaseDamage; // Pouzi premennu BaseDamage
 			FPointDamageEvent DamageEvent(DamageAmount, Hit, ForwardVector, nullptr);
 			// EventInstigator je ovladac (hrac alebo AI), ktory sposobil zranenie
-			HitCharacter->TakeDamage(DamageAmount, DamageEvent, MyController, this);
+			HitCharacter->TakeDamage(DamageAmount, DamageEvent, MyController, this); // Pouzi DamageAmount (BaseDamage)
 		}
 		// Moznost: Daj zranenie aj inym veciam, ktore sa daju rozbit
 	}

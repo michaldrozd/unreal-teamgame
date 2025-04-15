@@ -5,7 +5,7 @@
 #include "Blueprint/UserWidget.h"
 #include "MyHUDWidget.generated.h"
 
-// Povieme pocitacu, ze TextBlock existuje, aby sme nemuseli nacitavat cely jeho kod
+// Povieme pocitacu, ze tieto komponenty existuju, aby sme nemuseli nacitavat cely ich kod
 class UTextBlock;
 
 /**
@@ -26,6 +26,9 @@ public:
 	TObjectPtr<UTextBlock> DeathCountText;
 
 	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> HealthText; // Pridane pre zobrazenie zdravia
+
+	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> KillFeedText; // Uisti sa, ze toto meno sedi s menom premennej v UMG editore
 
 	// Funkcie na zmenu textu, volatelne z MyHUD
@@ -34,6 +37,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "HUD")
 	void UpdateDeathCount(int32 Deaths);
+
+	UFUNCTION(BlueprintCallable, Category = "HUD")
+	void UpdateHealth(float CurrentHealth, float MaxHealth); // Pridane pre zdravie
 
 	UFUNCTION(BlueprintCallable, Category = "HUD")
 	void UpdateKillFeed(const TArray<FString>& Messages);

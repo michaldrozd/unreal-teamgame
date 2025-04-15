@@ -11,6 +11,7 @@ void UMyHUDWidget::NativeConstruct()
 	// Nastav textove polia na pociatocne hodnoty alebo stav nacitavania
 	UpdateKillCount(0);
 	UpdateDeathCount(0);
+	UpdateHealth(100.0f, 100.0f); // Pociatocna hodnota pre zdravie
 	UpdateKillFeed({}); // Na zaciatku posli prazdne pole
 }
 
@@ -32,6 +33,19 @@ void UMyHUDWidget::UpdateDeathCount(int32 Deaths)
 		DeathCountText->SetText(FText::FromString(FString::Printf(TEXT("Smrti: %d"), Deaths))); // Zmeneny text na Slovensky
 	}
 	// else { UE_LOG(LogTemp, Warning, TEXT("UMyHUDWidget::UpdateDeathCount - DeathCountText is null")); }
+}
+
+// Aktualizuje text zobrazujuci aktualne a maximalne zdravie.
+void UMyHUDWidget::UpdateHealth(float CurrentHealth, float MaxHealth)
+{
+	if (HealthText)
+	{
+		// Zaokruhli hodnoty pre lepsie zobrazenie
+		int32 Current = FMath::RoundToInt(CurrentHealth);
+		int32 Max = FMath::RoundToInt(MaxHealth);
+		HealthText->SetText(FText::FromString(FString::Printf(TEXT("Zdravie: %d / %d"), Current, Max)));
+	}
+	// else { UE_LOG(LogTemp, Warning, TEXT("UMyHUDWidget::UpdateHealth - HealthText is null")); }
 }
 
 // Aktualizuje text zobrazujuci spravy o zabitiach (kill feed).

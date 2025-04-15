@@ -19,9 +19,10 @@ class AMyHUD : public AHUD
 public:
 	AMyHUD();
 
-	// Volane inymi castami kodu (PlayerState, GameState) na zmenu zobrazenych statistik/sprav
+	// Volane inymi castami kodu (PlayerState, GameState, Character) na zmenu zobrazenych statistik/sprav
 	void UpdateKillCount(int32 Kills);
 	void UpdateDeathCount(int32 Deaths);
+	void UpdateHealth(float CurrentHealth, float MaxHealth); // Pridane pre zdravie
 	void UpdateKillFeed(const TArray<FString>& Messages);
 
 protected:

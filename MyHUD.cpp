@@ -71,3 +71,14 @@ void AMyHUD::UpdateKillFeed(const TArray<FString>& Messages)
 	}
 	// else { UE_LOG(LogTemp, Warning, TEXT("AMyHUD::UpdateKillFeed - HUDWidget is null")); }
 }
+
+// Aktualizuje zdravie zobrazené na HUD widgete.
+void AMyHUD::UpdateHealth(float CurrentHealth, float MaxHealth)
+{
+	if (HUDWidget)
+	{
+		// UE_LOG(LogTemp, Verbose, TEXT("AMyHUD forwarding Health: %.1f / %.1f"), CurrentHealth, MaxHealth);
+		HUDWidget->UpdateHealth(CurrentHealth, MaxHealth);
+	}
+	// else { UE_LOG(LogTemp, Warning, TEXT("AMyHUD::UpdateHealth - HUDWidget is null")); }
+}

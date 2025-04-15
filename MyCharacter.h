@@ -109,6 +109,8 @@ protected:
 private:
 	// Pomocna funkcia na zobrazenie informacii na obrazovke hraca
 	void InitializeHUD();
+	// Pomocna funkcia na aktualizaciu zdravia na HUD
+	void UpdateHUDHealth();
 
 public:
 	/** Vrati kameru, cez ktoru sa pozeras */
