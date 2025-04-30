@@ -201,9 +201,10 @@ void AMyCharacter::StartFire(const FInputActionValue& Value) // Upravene pre Enh
 	if (GetWorld()->GetTimeSeconds() - LastFireTime >= FireRate)
 	{
 		// UE_LOG(LogTemp, Warning, TEXT("StartFire Called (Client or Server Local), firing allowed."));
-		// Hned zobraz efekt strelby u hraca (napr. zablesk pri hlavni)
-		// Multicast_PlayFireEffects(); // Mozes volat aj tu pre client-side prediction FX
-		Server_Fire(); // Zavolaj funkciu na serveri
+		// Hned zobraz efekt strelby u hraca (napr. zablesk pri hlavni) pre client-side prediction FX pre lepsiu odozvu.
+		// Server_Fire_Implementation spusti efekty znova cez Multicast_PlayFireEffects pre konzistenciu.
+		Multicast_PlayFireEffects(); // Mozes volat aj tu pre client-side prediction FX
+		Server_Fire(); // Zavolaj funkciu na serveri, ktory overi a aplikuje poskodenie
 	}
 	// else { UE_LOG(LogTemp, Warning, TEXT("StartFire Called, FireRate not met.")); }
 }
@@ -239,17 +240,19 @@ void AMyCharacter::Server_Fire_Implementation()
 
 	// UE_LOG(LogTemp, Warning, TEXT("Server_Fire_Implementation Called on Server, firing allowed."));
 
-	// 1. Vystrel "luc" z kamery, aby sme zistili, co sme trafili
+	// Aktualizuj cas posledneho vystrelu hned po uspesnej kontrole, nezavisle od zasahu
+	LastFireTime = GetWorld()->GetTimeSeconds();
+
+	// Spusti efekty strelby u vsetkych hracov (zvuk, zablesk). Toto sa zavola aj na serveri,
+	// cize na klientovi sa to zavola 2x (raz ako client-side prediction, raz replikaciou),
+	// ale Unreal Engine si s tym poradi.
+	Multicast_PlayFireEffects();
+
+	// 1. Vystrel "luc" z pohladu ovladaca, aby sme zistili, co sme trafili
 	FVector Start = FVector::ZeroVector;
 	FRotator Rot = FRotator::ZeroRotator;
 
-	// Ziskaj pohlad ovladaca namiesto kamery pre lepsiu presnost
-	AController* MyController = GetController();
-	if (!MyController)
-	{
-		return;
-	}
-
+	// Ziskaj pohlad ovladaca (zvycajne kamery)
 	MyController->GetPlayerViewPoint(Start, Rot);
 	FVector ForwardVector = Rot.Vector(); // Pouzi smer otocenia ovladaca
 	FVector End = Start + (ForwardVector * WeaponRange); // Pouzi nastavitelny dosah zbrane
@@ -258,11 +261,9 @@ void AMyCharacter::Server_Fire_Implementation()
 	QueryParams.AddIgnoredActor(this); // Ignoruj sam seba (aby si sa netrafil)
 	QueryParams.bTraceComplex = true;
 
-	// Pouzi novy kolizny kanal pre strelbu namiesto ECC_Visibility
-	bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_GameTraceChannel1, QueryParams); // Predpoklada, ze WeaponTrace je prvy vlastny kanal
-
-	// Moznost: Zavolaj funkciu pre efekty u vsetkych hracov, aj ked si nic netrafil
-	// Multicast_PlayFireEffects(); // Urob toto, ak chces zvuky/efekty strelby u vsetkych
+	// Pouzi vlastny kolizny kanal pre strelbu. Predpoklada, ze 'WeaponTrace' je definovany v Project Settings -> Collision a mapuje sa na ECC_WeaponTrace.
+	// Ak pouzivas iny nazov kanalu, alebo ho nemas nastaveny cez Project Settings, musis tu pouzit spravny enum (napr. ECC_GameTraceChannel1)
+	bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_WeaponTrace, QueryParams); // Pouzi definovany WeaponTrace kanal
 
 	if (bHit && Hit.GetActor())
 	{
@@ -285,11 +286,6 @@ void AMyCharacter::Server_Fire_Implementation()
 		// UE_LOG(LogTemp, Warning, TEXT("Server Fire Missed or Hit Non-Actor"));
 	}
 
-	// Aktualizuj cas posledneho vystrelu, aj ked si netrafil
-	LastFireTime = GetWorld()->GetTimeSeconds();
-
-	// Prehraj efekty strelby u vsetkych
-	Multicast_PlayFireEffects();
 }
 
 // Prehra efekty strelby (zvuk, zablesk) na vsetkych klientoch a serveri.
