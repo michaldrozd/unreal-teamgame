@@ -23,6 +23,7 @@ public:
 	void UpdateKillCount(int32 Kills);
 	void UpdateDeathCount(int32 Deaths);
 	void UpdateHealth(float CurrentHealth, float MaxHealth); // Pridane pre zdravie
+	void UpdateAmmo(int32 CurrentAmmo, int32 MaxAmmo, int32 ReserveAmmo); // Pridane pre municiu
 	void UpdateKillFeed(const TArray<FString>& Messages);
 
 protected:

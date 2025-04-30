@@ -72,6 +72,18 @@ void AMyHUD::UpdateKillFeed(const TArray<FString>& Messages)
 	// else { UE_LOG(LogTemp, Warning, TEXT("AMyHUD::UpdateKillFeed - HUDWidget is null")); }
 }
 
+// Aktualizuje municiu zobrazenu na HUD widgete.
+void AMyHUD::UpdateAmmo(int32 CurrentAmmo, int32 MaxAmmo, int32 ReserveAmmo)
+{
+	if (HUDWidget)
+	{
+		// UE_LOG(LogTemp, Verbose, TEXT("AMyHUD forwarding Ammo: %d / %d (%d)"), CurrentAmmo, MaxAmmo, ReserveAmmo);
+		HUDWidget->UpdateAmmo(CurrentAmmo, MaxAmmo, ReserveAmmo);
+	}
+	// else { UE_LOG(LogTemp, Warning, TEXT("AMyHUD::UpdateAmmo - HUDWidget is null")); }
+}
+
+
 // Aktualizuje zdravie zobrazené na HUD widgete.
 void AMyHUD::UpdateHealth(float CurrentHealth, float MaxHealth)
 {

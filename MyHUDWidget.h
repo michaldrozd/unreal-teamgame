@@ -29,6 +29,9 @@ public:
 	TObjectPtr<UTextBlock> HealthText; // Pridane pre zobrazenie zdravia
 
 	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> AmmoText; // Pridane pre zobrazenie municie
+
+	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> KillFeedText; // Uisti sa, ze toto meno sedi s menom premennej v UMG editore
 
 	// Funkcie na zmenu textu, volatelne z MyHUD
@@ -40,6 +43,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "HUD")
 	void UpdateHealth(float CurrentHealth, float MaxHealth); // Pridane pre zdravie
+
+	UFUNCTION(BlueprintCallable, Category = "HUD")
+	void UpdateAmmo(int32 CurrentAmmo, int32 MaxAmmo, int32 ReserveAmmo); // Pridane pre municiu
 
 	UFUNCTION(BlueprintCallable, Category = "HUD")
 	void UpdateKillFeed(const TArray<FString>& Messages);

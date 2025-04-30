@@ -12,6 +12,7 @@ void UMyHUDWidget::NativeConstruct()
 	UpdateKillCount(0);
 	UpdateDeathCount(0);
 	UpdateHealth(100.0f, 100.0f); // Pociatocna hodnota pre zdravie
+	UpdateAmmo(0, 0, 0); // Pociatocna hodnota pre municiu, bude aktualizovana z PlayerState/Character
 	UpdateKillFeed({}); // Na zaciatku posli prazdne pole
 }
 
@@ -46,6 +47,16 @@ void UMyHUDWidget::UpdateHealth(float CurrentHealth, float MaxHealth)
 		HealthText->SetText(FText::FromString(FString::Printf(TEXT("Zdravie: %d / %d"), Current, Max)));
 	}
 	// else { UE_LOG(LogTemp, Warning, TEXT("UMyHUDWidget::UpdateHealth - HealthText is null")); }
+}
+
+// Aktualizuje text zobrazujuci aktualnu municiu v zasobniku a v rezerve.
+void UMyHUDWidget::UpdateAmmo(int32 CurrentAmmo, int32 MaxAmmo, int32 ReserveAmmo)
+{
+	if (AmmoText)
+	{
+		AmmoText->SetText(FText::FromString(FString::Printf(TEXT("Munícia: %d / %d (%d)"), CurrentAmmo, MaxAmmo, ReserveAmmo))); // Zmeneny text na Slovensky
+	}
+	// else { UE_LOG(LogTemp, Warning, TEXT("UMyHUDWidget::UpdateAmmo - AmmoText is null")); }
 }
 
 // Aktualizuje text zobrazujuci spravy o zabitiach (kill feed).

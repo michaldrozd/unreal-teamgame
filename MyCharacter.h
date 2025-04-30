@@ -50,6 +50,28 @@ class AMyCharacter : public ACharacter
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon FX")
 	TObjectPtr<UParticleSystem> MuzzleFlashFX; // Alebo UNiagaraSystem
 
+	// Nastavenia municie a znovunabijania
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon Stats")
+	int32 MaxAmmoInClip = 30; // Maximalny pocet nabojov v zasobniku
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon Stats")
+	int32 StartingReserveAmmo = 90; // Pociatocny pocet nabojov mimo zasobnika
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon Stats")
+	float ReloadDuration = 2.0f; // Dlzka animacie/casu znovunabijania
+
+	// Nastavenia rozptylu
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon Stats")
+	float BaseSpreadAngle = 1.0f; // Zakladny rozptyl strelby v stupnoch (napr. 1.0)
+
+	// Aktualny stav municie (replikovane)
+	UPROPERTY(VisibleAnywhere, Category = "Weapon Status", ReplicatedUsing = OnRep_CurrentAmmoInClip)
+	int32 CurrentAmmoInClip;
+	UPROPERTY(VisibleAnywhere, Category = "Weapon Status", Replicated)
+	int32 ReserveAmmo;
+
+	// Stav znovunabijania (replikovane)
+	UPROPERTY(VisibleAnywhere, Category = "Weapon Status", ReplicatedUsing = OnRep_IsReloading)
+	bool bIsReloading = false;
+
 public:
 	AMyCharacter();
 
@@ -122,7 +144,20 @@ protected:
 
 	// Funkcia na prehratie efektov strelby u vsetkych hracov
 	UFUNCTION(NetMulticast, Unreliable) // Unreliable je OK pre kozmeticke efekty
+	// Funkcia na prehratie efektov strelby u vsetkych hracov
+	UFUNCTION(NetMulticast, Unreliable) // Unreliable je OK pre kozmeticke efekty
 	void Multicast_PlayFireEffects();
+
+	// Funkcie pre znovunabijanie
+	UFUNCTION(Server, Reliable) // Klient povie serveru, ze chce znovunabijat
+	void Server_StartReload();
+	UFUNCTION() // Volane u klientov, ked sa zmeni stav bIsReloading na serveri
+	void OnRep_IsReloading();
+	void FinishReload(); // Volane casovacom po ukonceni znovunabijania
+
+	// Funkcia volana u klientov, ked sa zmeni CurrentAmmoInClip na serveri
+	UFUNCTION()
+	void OnRep_CurrentAmmoInClip();
 
 	// Posielanie informacii ostatnym hracom
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;

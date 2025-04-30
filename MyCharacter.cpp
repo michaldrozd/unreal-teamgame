@@ -51,6 +51,14 @@ AMyCharacter::AMyCharacter()
 	// Nastavi pociatocne zdravie
 	CurrentHealth = MaxHealth;
 
+	// Nastav pociatocnu municiu. Toto by sa malo udiat len raz na serveri pri spawne.
+	// OnRep funkcie zabezpecia synchronizaciu s klientami.
+	if (HasAuthority())
+	{
+		CurrentAmmoInClip = MaxAmmoInClip;
+		ReserveAmmo = StartingReserveAmmo;
+	}
+
 	// Povie postavicke, aby kazdy moment (frame) nieco robila. Da sa to vypnut pre lepsi vykon.
 	// PrimaryActorTick.bCanEverTick = true; // Vacsinou to netreba, iba ak potrebujes nieco specialne robit kazdy moment
 
@@ -86,15 +94,380 @@ void AMyCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AMyCharacter, CurrentHealth);
-	// Poznamka: Maximalne zdravie netreba posielat ostatnym, ak sa meni len v editore
+	DOREPLIFETIME(AMyCharacter, CurrentAmmoInClip);
+	DOREPLIFETIME(AMyCharacter, ReserveAmmo);
+	DOREPLIFETIME(AMyCharacter, bIsReloading);
+	// Poznamka: Maximalne zdravie, MaxAmmoInClip, StartingReserveAmmo, ReloadDuration, BaseSpreadAngle
+	// netreba posielat ostatnym, ak sa menia len v editore/pri spawne.
 }
 
 // Volane u klientov, ked sa zmeni premenna CurrentHealth (ked server posle aktualizaciu).
 void AMyCharacter::OnRep_Health()
 {
 	// Moznost: Reakcia na zmenu zdravia u hraca (napr. zvuk bolesti, zmena na obrazovke)
+	// Moznost: Reakcia na zmenu zdravia u hraca (napr. zvuk bolesti, zmena na obrazovke)
 	// Aktualizuj HUD pre lokalneho hraca
 	UpdateHUDHealth();
+}
+
+// Volane u klientov, ked sa zmeni premenna CurrentAmmoInClip. Aktualizuje HUD.
+void AMyCharacter::OnRep_CurrentAmmoInClip()
+{
+	// Toto sa zavola u klientov, ked sa zmeni pocet nabojov v zasobniku
+	// UE_LOG(LogTemp, Warning, TEXT("Player %s OnRep_CurrentAmmoInClip: %d"), *GetName(), CurrentAmmoInClip);
+	// Aktualizuj aj HUD s municou
+	AMyPlayerState* PS = GetPlayerState<AMyPlayerState>();
+	if (PS && IsLocallyControlled())
+	{
+		// Predpokladame, ze PlayerState ma funkciu na aktualizaciu municie v HUD
+		// Ak nie, musis ju volat priamo z Character -> HUD (podobne ako zdravie)
+		// Zatial volajme priamo z Character -> HUD pre jednoduchost
+		APlayerController* PC = Cast<APlayerController>(GetController());
+		if (PC && PC->IsLocalController())
+		{
+			AMyHUD* HUD = Cast<AMyHUD>(PC->GetHUD());
+			if (HUD)
+			{
+				HUD->UpdateAmmo(CurrentAmmoInClip, MaxAmmoInClip, ReserveAmmo);
+			}
+		}
+	}
+}
+
+// Volane u klientov, ked sa zmeni premenna bIsReloading. Spusti/zastavi animaciu znovunabijania.
+void AMyCharacter::OnRep_IsReloading()
+{
+	// UE_LOG(LogTemp, Warning, TEXT("OnRep_IsReloading: %s for %s"), bIsReloading ? TEXT("True") : TEXT("False"), *GetName());
+	if (bIsReloading)
+	{
+		// Spusti animaciu znovunabijania na klientovi
+		// Hraj animaciu znovunabijania
+		// PlayAnimMontage(ReloadMontage); // Predpoklada existenciu ReloadMontage
+	}
+	else
+	{
+		// Ukonci animaciu znovunabijania na klientovi (ak predtym bezala)
+		// StopAnimMontage(ReloadMontage); // Predpoklada existenciu ReloadMontage
+	}
+	// Mozno aktualizovat aj stav HUDu (napr. zobrazit ikonku prebíjania)
+}
+
+// Inicializuje HUD pre lokalneho hraca. Volane po PossessedBy a OnRep_PlayerState.
+// Pridana inicializacia municie.
+void AMyCharacter::InitializeHUD()
+{
+	// Tato funkcia sa moze volat, ked server zacne ovladat postavicku
+	// a ked klient dostane informacie o hracovi, aby sa zobrazili spravne udaje
+	// ked su informacie o hracovi pripravene.
+	AMyPlayerState* PS = GetPlayerState<AMyPlayerState>();
+	if (PS && IsLocallyControlled()) // Uisti sa, ze menime len obrazovku hraca na tomto pocitaci
+	{
+		// Aktualizuj zdravie na HUD pri inicializacii
+		UpdateHUDHealth();
+		// Aktualizuj municiu na HUD pri inicializacii
+		APlayerController* PC = Cast<APlayerController>(GetController());
+		if (PC && PC->IsLocalController())
+		{
+			AMyHUD* HUD = Cast<AMyHUD>(PC->GetHUD());
+			if (HUD)
+			{
+				HUD->UpdateAmmo(CurrentAmmoInClip, MaxAmmoInClip, ReserveAmmo);
+			}
+		}
+		// Ak potrebujes inicializovat aj ine veci z PlayerState (Kills/Deaths),
+		// je lepsie mat centralnu funkciu v PlayerState, ktora aktualizuje vsetko.
+	}
+}
+
+// Pomocna funkcia na aktualizaciu zdravia na HUD pre lokalneho hraca.
+void AMyCharacter::UpdateHUDHealth()
+{
+	// Ziskaj lokalneho ovladaca
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	if (PC && PC->IsLocalController())
+	{
+		// Ziskaj HUD
+		AMyHUD* HUD = Cast<AMyHUD>(PC->GetHUD());
+		if (HUD)
+		{
+			// Aktualizuj zdravie
+			HUD->UpdateHealth(CurrentHealth, MaxHealth);
+		}
+		// else { UE_LOG(LogTemp, Warning, TEXT("UpdateHUDHealth: Could not get MyHUD for %s"), *GetName()); }
+	}
+	// else { // Toto sa moze stat na serveri alebo u neovladanych postaviciek, co je v poriadku
+	//     // UE_LOG(LogTemp, Log, TEXT("UpdateHUDHealth: Not a local controller for %s"), *GetName());
+	// }
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Vstup (Ovladanie)
+
+// Nastavuje prepojenie medzi vstupnymi akciami (Input Actions) a funkciami v tejto triede.
+void AMyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	// Nastavi, co ktore tlacidla robia v hre
+	check(PlayerInputComponent);
+
+	// Pouzije novy system pre ovladanie
+	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
+	{
+		// Strelba
+		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &AMyCharacter::StartFire);
+
+		// Skok (ak pouzivame novy system)
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+
+		// Pohyb (ak pouzivame novy system)
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AMyCharacter::Move);
+
+		// Pozeranie (ak pouzivame novy system)
+		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMyCharacter::Look);
+
+		// Moznost: Pridaj akciu pre znovunabijanie
+		// EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Triggered, this, &AMyCharacter::StartReload); // Potrebujes ReloadAction Input Action
+	}
+}
+
+// Spracovava vstup pre pohyb dopredu/dozadu a dolava/doprava.
+void AMyCharacter::Move(const FInputActionValue& Value)
+{
+	// Ak sa prave znovunabija, neumozni pohyb, ak by to bolo zavisle od animacie (zvycajne sa umozni pohyb)
+	// if (bIsReloading) return; // Odkomentuj, ak sa neda hybat pocas znovunabijania
+	// Ak si mrtvy, neumozni pohyb
+	if (CurrentHealth <= 0) return;
+
+
+	// vstup su dve cisla (smer dopredu/dozadu a dolava/doprava)
+	FVector2D MovementVector = Value.Get<FVector2D>();
+
+	if (Controller != nullptr)
+	{
+		// zisti, ktorym smerom sa pozeras
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+		// ziskaj smer dopredu
+		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+
+		// ziskaj smer doprava
+		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+		// pridaj pohyb
+		AddMovementInput(ForwardDirection, MovementVector.Y);
+		AddMovementInput(RightDirection, MovementVector.X);
+	}
+}
+
+// Spracovava vstup pre otacanie pohladu (mys).
+void AMyCharacter::Look(const FInputActionValue& Value)
+{
+	// Ak si mrtvy, neumozni pozeranie (vacsinou sa povoli pozeranie okolo)
+	// if (CurrentHealth <= 0) return; // Odkomentuj, ak sa neda pozerat po smrti
+
+	// vstup su dve cisla (pohyb mysou hore/dole a dolava/doprava)
+	FVector2D LookAxisVector = Value.Get<FVector2D>();
+
+	if (Controller != nullptr)
+	{
+		// pridaj otacanie dolava/doprava a hore/dole
+		AddControllerYawInput(LookAxisVector.X);
+		AddControllerPitchInput(LookAxisVector.Y);
+	}
+}
+
+// Volane, ked hrac stlaci tlacidlo pre strelbu. Skontroluje rychlost strelby a spusti Server_Fire.
+// Pridana kontrola municie a stavu znovunabijania.
+void AMyCharacter::StartFire(const FInputActionValue& Value) // Upravene pre Enhanced Input
+{
+	// Nekonaj, ak si mrtvy, znovunabijas, alebo nemas naboje v zasobniku, alebo sa neda strielat (FireRate)
+	if (CurrentHealth <= 0 || bIsReloading || CurrentAmmoInClip <= 0 || GetWorld()->GetTimeSeconds() - LastFireTime < FireRate)
+	{
+		// UE_LOG(LogTemp, Warning, TEXT("StartFire Blocked: Health(%d) Reloading(%s) Ammo(%d) FireRate Met(%s)"),
+		// 	(int)CurrentHealth, bIsReloading ? TEXT("True") : TEXT("False"), CurrentAmmoInClip,
+		// 	(GetWorld()->GetTimeSeconds() - LastFireTime >= FireRate) ? TEXT("True") : TEXT("False"));
+		return;
+	}
+
+	// UE_LOG(LogTemp, Warning, TEXT("StartFire Called (Client or Server Local), firing allowed."));
+	// Hned zobraz efekt strelby u hraca (napr. zablesk pri hlavni) pre client-side prediction FX pre lepsiu odozvu.
+	// Server_Fire_Implementation spusti efekty znova cez Multicast_PlayFireEffects pre konzistenciu.
+	Multicast_PlayFireEffects(); // Mozes volat aj tu pre client-side prediction FX
+	Server_Fire(); // Zavolaj funkciu na serveri, ktory overi a aplikuje poskodenie
+
+	// Klient-side predikcia spotreby municie
+	// Toto je len pre okamzitu vizualnu spatnu vazbu, server je autoritativny
+	// Ak server odmietne vystrel (napr. pre cheat), klient by mal zosynchronizovat stav municie
+	// For now, rely on server to replicate ammo changes.
+}
+
+// Volane klientom na spustenie procesu znovunabijania.
+void AMyCharacter::StartReload()
+{
+	// Spusti znovunabijanie, ak uz nie sme v procese, nie sme mrtvi, a mame nejake naboje mimo zasobnika, a zasobnik nie je plny
+	if (!bIsReloading && CurrentHealth > 0 && ReserveAmmo > 0 && CurrentAmmoInClip < MaxAmmoInClip)
+	{
+		// UE_LOG(LogTemp, Warning, TEXT("StartReload Called (Client or Server Local)"));
+		Server_StartReload(); // Povedz serveru, ze chces znovunabijat
+	}
+	// else { UE_LOG(LogTemp, Warning, TEXT("StartReload Blocked: Reloading(%s) Health(%d) Reserve(%d) AmmoInClip(%d/%d)"),
+	// 	bIsReloading ? TEXT("True") : TEXT("False"), (int)CurrentHealth, ReserveAmmo, CurrentAmmoInClip, MaxAmmoInClip); }
+}
+
+// Serverova implementacia znovunabijania. Nastavi stav, casovac a spusti OnRep.
+bool AMyCharacter::Server_StartReload_Validate()
+{
+	// Zakladna validacia: hrac nie je mrtvy, uz neznovunabija, ma naboje mimo zasobnika a zasobnik nie je plny
+	return CurrentHealth > 0 && !bIsReloading && ReserveAmmo > 0 && CurrentAmmoInClip < MaxAmmoInClip;
+}
+
+void AMyCharacter::Server_StartReload_Implementation()
+{
+	// UE_LOG(LogTemp, Warning, TEXT("Server_StartReload_Implementation Called on Server"));
+
+	// Nastav stav znovunabijania
+	bIsReloading = true;
+
+	// Spusti OnRep_IsReloading rucne na serveri (spusti sa aj na klientoch automaticky)
+	OnRep_IsReloading();
+
+	// Spusti casovac na dokonceni znovunabijania
+	GetWorldTimerManager().SetTimer(ReloadTimerHandle, this, &AMyCharacter::FinishReload, ReloadDuration, false);
+
+	// Moznost: Hraj animaciu znovunabijania na serveri (nemusí byt vidiet, ale kvoli konzistencii logiky)
+	// PlayAnimMontage(ReloadMontage); // Predpoklada existenciu ReloadMontage
+}
+
+// Volane casovacom na serveri po skonceni znovunabijania. Doplna municiu.
+void AMyCharacter::FinishReload()
+{
+	// UE_LOG(LogTemp, Warning, TEXT("FinishReload Called on Server"));
+
+	// Vypocitaj, kolko nabojov treba doplnit
+	int32 AmmoNeeded = MaxAmmoInClip - CurrentAmmoInClip;
+	// Vypocitaj, kolko nabojov mozeme realne pouzit z rezervy
+	int32 AmmoToTakeFromReserve = FMath::Min(AmmoNeeded, ReserveAmmo);
+
+	// Doplna municiu v zasobniku
+	CurrentAmmoInClip += AmmoToTakeFromReserve;
+	// Uber z rezervy
+	ReserveAmmo -= AmmoToTakeFromReserve;
+
+	// Ukonci stav znovunabijania
+	bIsReloading = false;
+
+	// Spusti OnRep_IsReloading rucne na serveri (spusti sa aj na klientoch automaticky)
+	OnRep_IsReloading();
+
+	// Spusti OnRep_CurrentAmmoInClip rucne na serveri, aby sa aktualizoval HUD (spusti sa aj na klientoch automaticky)
+	OnRep_CurrentAmmoInClip();
+
+	// UE_LOG(LogTemp, Warning, TEXT("Reload Finished on Server. Ammo: %d / %d"), CurrentAmmoInClip, ReserveAmmo);
+}
+
+
+// Validacna funkcia pre Server_Fire. Kontroluje, ci moze server spustit strelbu.
+// Pridana kontrola stavu municie a znovunabijania.
+bool AMyCharacter::Server_Fire_Validate()
+{
+	// Zakladna kontrola + kontrola municie a znovunabijania
+	return CurrentHealth > 0 && !bIsReloading && CurrentAmmoInClip > 0 && GetWorld()->GetTimeSeconds() - LastFireTime >= FireRate;
+}
+
+// Funkcia pre strelbu vykonavana na serveri. Robi raycast, spotrebuje municiu a aplikuje poskodenie.
+// Pridana logika spotreby municie a rozptylu.
+void AMyCharacter::Server_Fire_Implementation()
+{
+	// UE_LOG(LogTemp, Warning, TEXT("Server_Fire_Implementation Called on Server"));
+
+	// Ziskaj ovladaca postavicky
+	AController* MyController = GetController();
+	if (!MyController)
+	{
+		// UE_LOG(LogTemp, Error, TEXT("Server_Fire_Implementation: No controller found. Aborting."));
+		return;
+	}
+
+	// Kontrola rychlosti strelby aj na serveri (autoritativna kontrola)
+	// Túto kontrolu robíme už aj vo Validate, ale je dobré ju mať aj tu pre istotu
+	if (GetWorld()->GetTimeSeconds() - LastFireTime < FireRate || bIsReloading || CurrentAmmoInClip <= 0)
+	{
+		// UE_LOG(LogTemp, Warning, TEXT("Server_Fire_Implementation Blocked by State Check."));
+		return; // Ak rychlost strelby nie je splnena, alebo znovunabijame, alebo nemame naboje, funkciu ukonci
+	}
+
+	// UE_LOG(LogTemp, Warning, TEXT("Server_Fire_Implementation Called on Server, firing allowed."));
+
+	// Aktualizuj cas posledneho vystrelu hned po uspesnej kontrole, nezavisle od zasahu
+	LastFireTime = GetWorld()->GetTimeSeconds();
+
+	// Spotrebuj municiu (iba na serveri)
+	CurrentAmmoInClip--;
+	// Spusti OnRep rucne na serveri
+	OnRep_CurrentAmmoInClip();
+
+
+	// Spusti efekty strelby u vsetkych hracov (zvuk, zablesk). Toto sa zavola aj na serveri,
+	// cize na klientovi sa to zavola 2x (raz ako client-side prediction, raz replikaciou),
+	// ale Unreal Engine si s tym poradi.
+	Multicast_PlayFireEffects();
+
+	// --- Vypocitaj smer strely s rozptylom ---
+	FVector Start = FVector::ZeroVector;
+	FRotator Rot = FRotator::ZeroRotator;
+
+	// Ziskaj pohlad ovladaca (zvycajne kamery)
+	MyController->GetPlayerViewPoint(Start, Rot);
+
+	FVector ForwardVector = Rot.Vector(); // Pouzi smer otocenia ovladaca
+	FVector End = Start + (ForwardVector * WeaponRange); // Zakladny koniec luca bez rozptylu
+
+	// Aplikuj rozptyl (Spread)
+	// Generuj nahodnu rotaciu v kuzeli s uhlom BaseSpreadAngle
+	FRotator SpreadRotation = FMath::VRandCone(ForwardVector, FMath::DegreesToRadians(BaseSpreadAngle)).Rotation();
+	FVector EndWithSpread = Start + (SpreadRotation.Vector() * WeaponRange); // Koniec luca s rozptylom
+
+	// 1. Vystrel "luc" z pohladu ovladaca, aby sme zistili, co sme trafili
+	FHitResult Hit;
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(this); // Ignoruj sam seba (aby si sa netrafil)
+	QueryParams.bTraceComplex = true; // Pre presnejsi zasah na komplexnych modeloch
+
+	// Pouzi vlastny kolizny kanal pre strelbu. Predpoklada, ze 'WeaponTrace' je definovany v Project Settings -> Collision a mapuje sa na ECC_WeaponTrace.
+	// Ak pouzivas iny nazov kanalu, alebo ho nemas nastaveny cez Project Settings, musis tu pouzit spravny enum (napr. ECC_GameTraceChannel1)
+	bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, EndWithSpread, ECC_WeaponTrace, QueryParams); // Pouzi koniec luca s rozptylom
+
+	// Moznost: Zobraz "debug line" pre raycast
+	// DrawDebugLine(GetWorld(), Start, bHit ? Hit.ImpactPoint : EndWithSpread, bHit ? FColor::Green : FColor::Red, false, 2.0f, 0, 1.0f);
+
+
+	if (bHit && Hit.GetActor())
+	{
+		// UE_LOG(LogTemp, Warning, TEXT("Server Fire Hit: %s at %.1f distance"), *Hit.GetActor()->GetName(), Hit.Distance);
+		// 2. Skontroluj, ci trafena vec je ina postavicka hraca
+		AMyCharacter* HitCharacter = Cast<AMyCharacter>(Hit.GetActor());
+		if (HitCharacter && HitCharacter != this) // Uisti sa, ze je to postavicka a nie ty sam
+		{
+			// UE_LOG(LogTemp, Warning, TEXT("Applying Damage to: %s"), *HitCharacter->GetName());
+			// 3. Daj zranenie - pouzi BaseDamage namiesto priameho cisla
+			float DamageAmount = BaseDamage; // Pouzi premennu BaseDamage
+			FPointDamageEvent DamageEvent(DamageAmount, Hit, ForwardVector, nullptr); // Pouzi povodny ForwardVector pre vyhodnotenie smeru poskodenia
+			// EventInstigator je ovladac (hrac alebo AI), ktory sposobil zranenie
+			HitCharacter->TakeDamage(DamageAmount, DamageEvent, MyController, this); // Pouzi DamageAmount (BaseDamage)
+		}
+		// Moznost: Daj zranenie aj inym veciam, ktore sa daju rozbit
+	}
+	else
+	{
+		// UE_LOG(LogTemp, Warning, TEXT("Server Fire Missed or Hit Non-Actor"));
+	}
+
+	// Moznost: Ak po vystrele ostalo 0 nabojov a mas rezervu, automaticky zacni znovunabijat
+	// if (CurrentAmmoInClip <= 0 && ReserveAmmo > 0 && !bIsReloading)
+	// {
+	// 	StartReload(); // Alebo Server_StartReload(); ak chces, aby klient predikoval zaciatok
+	// }
 }
 
 // Inicializuje HUD pre lokalneho hraca. Volane po PossessedBy a OnRep_PlayerState.
