@@ -413,7 +413,8 @@ void AMyCharacter::Multicast_Ragdoll_Implementation()
 	if (CharacterMesh)
 	{
 		// UE_LOG(LogTemp, Warning, TEXT("Enabling physics on mesh for %s"), *GetName());
-		CharacterMesh->SetCollisionProfileName(TEXT("Ragdoll")); // Uisti sa, ze profil pre Ragdoll existuje a je spravne nastaveny
+		// Nastav kolizny profil pre ragdoll pouzitim premennej z editora
+		CharacterMesh->SetCollisionProfileName(RagdollCollisionProfileName); // Pouzi nastavitelny nazov profilu
 		CharacterMesh->SetSimulatePhysics(true);
 		CharacterMesh->SetOwnerNoSee(false); // Uisti sa, ze model je teraz viditelny
 	}

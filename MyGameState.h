@@ -31,8 +31,6 @@ public:
 
 private:
 	// Pomocna funkcia na aktualizaciu obrazovky (volana na serveri a u klientov)
-private:
-	// Pomocna funkcia na aktualizaciu obrazovky (volana na serveri a u klientov)
 	void UpdateHUDKillFeed();
 
 	// Maximalny pocet sprav, ktore sa zobrazia naraz

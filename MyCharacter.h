@@ -99,6 +99,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
 	float RagdollLifeSpan = 5.0f;
 
+	// Nazov kolizneho profilu pre Ragdoll, nastavy sa v editore
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
+	FName RagdollCollisionProfileName = TEXT("Ragdoll"); // Predvoleny nazov, uisti sa, ze profil existuje!
+
 	// Nastavenia zbrane
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 	float FireRate = 0.1f; // Ako casto mozes strielat (v sekundach)
