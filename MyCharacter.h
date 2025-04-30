@@ -95,11 +95,28 @@ protected:
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_Ragdoll();
 
+	// Dlzka trvania ragdoll efektu a zivotnosti mrtvej postavicky
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
+	float RagdollLifeSpan = 5.0f;
+
+	// Nastavenia zbrane
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	float FireRate = 0.1f; // Ako casto mozes strielat (v sekundach)
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	float BaseDamage = 20.0f; // Zakladne poskodenie jednej strely
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	float WeaponRange = 10000.0f; // Dosah strely
+
+	// Interna premenna na sledovanie casu posledneho vystrelu
+	float LastFireTime;
+
 	// Veci pre strelbu
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_Fire();
 
-	// Funkcia na prehratie efektov strelby u vsetkych klientov
+	// Funkcia na prehratie efektov strelby u vsetkych hracov
 	UFUNCTION(NetMulticast, Unreliable) // Unreliable je OK pre kozmeticke efekty
 	void Multicast_PlayFireEffects();
 

@@ -193,12 +193,19 @@ void AMyCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
-// Volane, ked hrac stlaci tlacidlo pre strelbu. Spusti Server_Fire.
+// Volane, ked hrac stlaci tlacidlo pre strelbu. Skontroluje rychlost strelby a spusti Server_Fire.
 void AMyCharacter::StartFire(const FInputActionValue& Value) // Upravene pre Enhanced Input
 {
-	// Hned zobraz efekt strelby u hraca (napr. zablesk pri hlavni)
-	// UE_LOG(LogTemp, Warning, TEXT("StartFire Called (Client or Server Local)"));
-	Server_Fire(); // Zavolaj funkciu na serveri
+	// Kontrola na strane klienta pre rychlejsiu odozvu (predikcia)
+	// Autoritatívna kontrola prebehne aj na serveri v Server_Fire
+	if (GetWorld()->GetTimeSeconds() - LastFireTime >= FireRate)
+	{
+		// UE_LOG(LogTemp, Warning, TEXT("StartFire Called (Client or Server Local), firing allowed."));
+		// Hned zobraz efekt strelby u hraca (napr. zablesk pri hlavni)
+		// Multicast_PlayFireEffects(); // Mozes volat aj tu pre client-side prediction FX
+		Server_Fire(); // Zavolaj funkciu na serveri
+	}
+	// else { UE_LOG(LogTemp, Warning, TEXT("StartFire Called, FireRate not met.")); }
 }
 
 // Validacna funkcia pre Server_Fire. Kontroluje, ci moze server spustit strelbu.
@@ -223,9 +230,29 @@ void AMyCharacter::Server_Fire_Implementation()
 		return;
 	}
 
+	// Kontrola rychlosti strelby aj na serveri (autoritativna kontrola)
+	if (GetWorld()->GetTimeSeconds() - LastFireTime < FireRate)
+	{
+		// UE_LOG(LogTemp, Warning, TEXT("Server_Fire_Implementation Called, FireRate not met on server. Aborting."));
+		return; // Ak rychlost strelby nie je splnena, funkciu ukonci
+	}
+
+	// UE_LOG(LogTemp, Warning, TEXT("Server_Fire_Implementation Called on Server, firing allowed."));
+
+	// 1. Vystrel "luc" z kamery, aby sme zistili, co sme trafili
+	FVector Start = FVector::ZeroVector;
+	FRotator Rot = FRotator::ZeroRotator;
+
+	// Ziskaj pohlad ovladaca namiesto kamery pre lepsiu presnost
+	AController* MyController = GetController();
+	if (!MyController)
+	{
+		return;
+	}
+
 	MyController->GetPlayerViewPoint(Start, Rot);
 	FVector ForwardVector = Rot.Vector(); // Pouzi smer otocenia ovladaca
-	FVector End = Start + (ForwardVector * 10000.0f); // Uprav dosah strely podla potreby
+	FVector End = Start + (ForwardVector * WeaponRange); // Pouzi nastavitelny dosah zbrane
 	FHitResult Hit;
 	FCollisionQueryParams QueryParams;
 	QueryParams.AddIgnoredActor(this); // Ignoruj sam seba (aby si sa netrafil)
@@ -373,8 +400,8 @@ void AMyCharacter::Die(AController* KillerController)
 			// if(PC) PC->DisableInput(PC);
 		}
 
-		// Nastav cas, po ktorom postavicka zmizne z hry
-		SetLifeSpan(5.0f);
+		// Nastav cas, po ktorom postavicka zmizne z hry (s pouzitim nastavitelnej premennej)
+		SetLifeSpan(RagdollLifeSpan);
 	}
 	else
 	{

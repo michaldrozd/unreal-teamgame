@@ -47,18 +47,27 @@ void AMyGameState::OnRep_KillFeed()
 // Aktualizuje cast HUDu zobrazujucu kill feed pre lokalneho hraca.
 void AMyGameState::UpdateHUDKillFeed()
 {
-	// GameState existuje u vsetkych, ale chceme menit len obrazovku *lokalneho* hraca.
-	// Potrebujeme ziskat lokalneho ovladaca. Index 0 je vacsinou lokalny hrac.
-	APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	if (PC && PC->IsLocalController()) // Pre istotu skontroluj, ci je lokalny
+	// GameState exists on all clients and the server. We only want to update the HUD
+	// for the player who is locally controlling this instance of the game.
+	// We need to find the local player controller and update its HUD.
+	// Iterating through controllers and checking IsLocalController() is a reliable method.
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
 	{
-		AMyHUD* HUD = Cast<AMyHUD>(PC->GetHUD());
-		if (HUD)
+		APlayerController* PC = It->Get();
+		if (PC && PC->IsLocalController()) // Check if this is the local player's controller
 		{
-			// UE_LOG(LogTemp, Log, TEXT("Updating Kill Feed HUD."));
-			HUD->UpdateKillFeed(KillFeedMessages);
+			AMyHUD* HUD = Cast<AMyHUD>(PC->GetHUD());
+			if (HUD)
+			{
+				// UE_LOG(LogTemp, Log, TEXT("Updating Kill Feed HUD for local player."));
+				HUD->UpdateKillFeed(KillFeedMessages);
+				// Found and updated the local HUD, no need to check other controllers
+				break;
+			}
+			// else { UE_LOG(LogTemp, Warning, TEXT("UpdateHUDKillFeed: Could not get MyHUD for local PlayerController.")); }
 		}
-		// else { UE_LOG(LogTemp, Warning, TEXT("UpdateHUDKillFeed: Could not get MyHUD.")); }
 	}
-	// else { UE_LOG(LogTemp, Warning, TEXT("UpdateHUDKillFeed: Could not get local PlayerController(0).")); }
+	// else { // This branch might be hit on the server or for non-local clients, which is expected behavior
+	//     // UE_LOG(LogTemp, Verbose, TEXT("UpdateHUDKillFeed: No local PlayerController found to update HUD."));
+	// }
 }
